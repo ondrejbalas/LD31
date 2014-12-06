@@ -37,7 +37,7 @@ module.exports = function (grunt) {
                 options: {
                     target: 'es3',
                     sourceMaps: true,
-                    declaration: false,
+                    declaration: true,
                     removeComments: false
                 }
             },

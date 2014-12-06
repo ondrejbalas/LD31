@@ -1,0 +1,1 @@
+"C:\dev\1gam\LD31\app\scripts\app.ts" --sourcemap --target ES3 --module amd --out app/scripts/app.js

@@ -1,5 +1,6 @@
 ///<reference path="../../../typings/easeljs/easeljs.d.ts" />
 ///<reference path="../../../typings/preloadjs/preloadjs.d.ts" />
+///<reference path="../app.d.ts" />
 
 class World extends GameObjectContainer {
     level:number;
@@ -19,32 +20,38 @@ class World extends GameObjectContainer {
         this.init();
         this.preload(() => {
             this.loadContent(this.stage);
-            this.update();
-            this.stage.update();
+            createjs.Ticker.addEventListener('tick', window.helpers.globaltick);
         });
     }
 
     init():void {
         console.log('world:init enter');
-        this.pushObject(new Vehicle(40, 22, 'blue'))
-        this.pushObject(new Vehicle(40, 22, 'blue'))
-        this.pushObject(new Vehicle(40, 22, 'blue'))
-        this.pushObject(new Vehicle(40, 22, 'blue'))
+        createjs.Ticker.setFPS(60);
+
+        this.pushObject(new Vehicle(40, 22, 'blue', 0, 10))
+        this.pushObject(new Vehicle(40, 22, 'red', 90, 15))
+        this.pushObject(new Vehicle(40, 22, 'purple', 180, 20))
+        this.pushObject(new Vehicle(40, 22, 'yellow', 270, 25))
 
         super.init();
         console.log('world:init exit');
     }
 
-    loadContent(stage:createjs.Stage) {
+    loadContent(stage:createjs.Stage):void {
         console.log('world:loadContent enter')
 
-        var asset = this.loadQueue.getResult('bgimg');
+        var asset = <HTMLImageElement> this.loadQueue.getResult('bgimg');
         this.bgimg = new createjs.Bitmap(asset);
 
         stage.addChild(this.bgimg);
 
         super.loadContent(stage);
         console.log('world:loadContent exit')
+    }
+
+    update(event:createjs.TickerEvent):void {
+        super.update(event);
+        this.stage.update();
     }
 
     preload(callback: () => void):void {

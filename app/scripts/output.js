@@ -1,3 +1,4 @@
+///<reference path="../../../typings/easeljs/easeljs.d.ts" />
 var GameObjectContainer = (function () {
     function GameObjectContainer() {
         this.gameObjects = [];
@@ -17,10 +18,10 @@ var GameObjectContainer = (function () {
             obj.loadContent(stage);
         }
     };
-    GameObjectContainer.prototype.update = function () {
+    GameObjectContainer.prototype.update = function (event) {
         for (var i = 0; i < this.gameObjects.length; i++) {
             var obj = this.gameObjects[i];
-            obj.update();
+            obj.update(event);
         }
     };
     GameObjectContainer.prototype.unloadContent = function (stage) {
@@ -64,15 +65,18 @@ var TrafficLight = (function () {
     return TrafficLight;
 })();
 var Vehicle = (function () {
-    function Vehicle(length, width, color) {
+    function Vehicle(length, width, color, heading, speed) {
         this.length = length;
         this.width = width;
         this.color = color;
+        this.heading = heading;
+        this.speed = speed;
     }
     Vehicle.prototype.init = function () {
         this.x = Math.floor(100 + Math.random() * 500);
         this.y = Math.floor(100 + Math.random() * 300);
-        this.heading = Math.floor(Math.random() * 360);
+        //this.heading = Math.floor(Math.random() * 360);
+        //this.speed = 5 + Math.floor(Math.random() * 5);
     };
     Vehicle.prototype.loadContent = function (stage) {
         this.rect = new createjs.Shape();
@@ -81,9 +85,13 @@ var Vehicle = (function () {
         this.rect.graphics.beginFill(this.color).drawRect(0, 0, this.width, this.length).setStrokeStyle(3).beginStroke('#000');
         stage.addChild(this.rect);
     };
-    Vehicle.prototype.update = function () {
-        this.rect.x = this.x;
-        this.rect.y = this.y;
+    Vehicle.prototype.update = function (event) {
+        var xVelocity = Math.sin(this.heading * (Math.PI / 180)) * (this.speed * event.delta / 1000);
+        this.x += xVelocity;
+        var yVelocity = Math.cos(this.heading * (Math.PI / 180)) * (this.speed * event.delta / 1000);
+        this.y -= yVelocity;
+        this.rect.x = Math.floor(this.x);
+        this.rect.y = Math.floor(this.y);
         this.rect.rotation = this.heading;
     };
     Vehicle.prototype.unloadContent = function (stage) {
@@ -92,6 +100,7 @@ var Vehicle = (function () {
 })();
 ///<reference path="../../../typings/easeljs/easeljs.d.ts" />
 ///<reference path="../../../typings/preloadjs/preloadjs.d.ts" />
+///<reference path="../app.d.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
@@ -113,16 +122,16 @@ var World = (function (_super) {
         this.init();
         this.preload(function () {
             _this.loadContent(_this.stage);
-            _this.update();
-            _this.stage.update();
+            createjs.Ticker.addEventListener('tick', window.helpers.globaltick);
         });
     };
     World.prototype.init = function () {
         console.log('world:init enter');
-        this.pushObject(new Vehicle(40, 22, 'blue'));
-        this.pushObject(new Vehicle(40, 22, 'blue'));
-        this.pushObject(new Vehicle(40, 22, 'blue'));
-        this.pushObject(new Vehicle(40, 22, 'blue'));
+        createjs.Ticker.setFPS(60);
+        this.pushObject(new Vehicle(40, 22, 'blue', 0, 10));
+        this.pushObject(new Vehicle(40, 22, 'red', 90, 15));
+        this.pushObject(new Vehicle(40, 22, 'purple', 180, 20));
+        this.pushObject(new Vehicle(40, 22, 'yellow', 270, 25));
         _super.prototype.init.call(this);
         console.log('world:init exit');
     };
@@ -133,6 +142,10 @@ var World = (function (_super) {
         stage.addChild(this.bgimg);
         _super.prototype.loadContent.call(this, stage);
         console.log('world:loadContent exit');
+    };
+    World.prototype.update = function (event) {
+        _super.prototype.update.call(this, event);
+        this.stage.update();
     };
     World.prototype.preload = function (callback) {
         console.log('world:preload enter');

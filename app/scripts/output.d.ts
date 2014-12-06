@@ -1,19 +1,21 @@
 /// <reference path="../../typings/easeljs/easeljs.d.ts" />
 /// <reference path="../../typings/preloadjs/preloadjs.d.ts" />
+/// <reference path="app.d.ts" />
 declare class GameObjectContainer implements IGameObject {
     gameObjects: IGameObject[];
-    pushObjects(obj: IGameObject): void;
+    pushObject(obj: IGameObject): void;
     init(): void;
     loadContent(stage: createjs.Stage): void;
-    update(): void;
+    update(event: createjs.TickerEvent): void;
     unloadContent(stage: createjs.Stage): void;
 }
 declare class Helpers {
+    globaltick: any;
 }
 interface IGameObject {
     init(): void;
     loadContent(stage: createjs.Stage): void;
-    update(): void;
+    update(event: createjs.TickerEvent): void;
     unloadContent(stage: createjs.Stage): void;
 }
 declare class Intersection implements IGameObject {
@@ -29,9 +31,18 @@ declare class TrafficLight implements IGameObject {
     unloadContent(stage: createjs.Stage): void;
 }
 declare class Vehicle implements IGameObject {
+    length: number;
+    width: number;
+    color: string;
+    heading: number;
+    speed: number;
+    x: number;
+    y: number;
+    rect: createjs.Shape;
+    constructor(length: number, width: number, color: string, heading: number, speed: number);
     init(): void;
     loadContent(stage: createjs.Stage): void;
-    update(): void;
+    update(event: createjs.TickerEvent): void;
     unloadContent(stage: createjs.Stage): void;
 }
 declare class World extends GameObjectContainer {
@@ -42,5 +53,7 @@ declare class World extends GameObjectContainer {
     constructor(stage: createjs.Stage);
     start(): void;
     init(): void;
+    loadContent(stage: createjs.Stage): void;
+    update(event: createjs.TickerEvent): void;
     preload(callback: () => void): void;
 }

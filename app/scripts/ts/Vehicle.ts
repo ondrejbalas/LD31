@@ -1,17 +1,16 @@
 class Vehicle implements IGameObject {
-    speed:number;
-    heading:number;
     x:number;
     y:number;
     rect:createjs.Shape;
 
-    constructor(public length:number, public width:number, public color:string) {
+    constructor(public length:number, public width:number, public color:string, public heading: number, public speed: number) {
     }
 
     init():void {
         this.x = Math.floor(100 + Math.random() * 500);
         this.y = Math.floor(100 + Math.random() * 300);
-        this.heading = Math.floor(Math.random() * 360);
+        //this.heading = Math.floor(Math.random() * 360);
+        //this.speed = 5 + Math.floor(Math.random() * 5);
     }
 
     loadContent(stage:createjs.Stage):void {
@@ -27,9 +26,14 @@ class Vehicle implements IGameObject {
         stage.addChild(this.rect);
     }
 
-    update():void {
-        this.rect.x = this.x;
-        this.rect.y = this.y;
+    update(event:createjs.TickerEvent):void {
+        var xVelocity = Math.sin(this.heading * (Math.PI / 180)) * (this.speed * event.delta / 1000);
+        this.x += xVelocity;
+        var yVelocity = Math.cos(this.heading * (Math.PI / 180)) * (this.speed * event.delta / 1000);
+        this.y -= yVelocity;
+
+        this.rect.x = Math.floor(this.x);
+        this.rect.y = Math.floor(this.y);
         this.rect.rotation = this.heading;
     }
 

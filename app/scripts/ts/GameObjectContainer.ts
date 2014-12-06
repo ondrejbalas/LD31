@@ -1,4 +1,4 @@
-
+///<reference path="../../../typings/easeljs/easeljs.d.ts" />
 
 class GameObjectContainer implements IGameObject {
     gameObjects:IGameObject[] = [];
@@ -14,21 +14,21 @@ class GameObjectContainer implements IGameObject {
         }
     }
 
-    loadContent(stage:createjs.Stage) : void {
+    loadContent(stage:createjs.Stage):void {
         for (var i = 0; i < this.gameObjects.length; i++) {
             var obj = this.gameObjects[i];
             obj.loadContent(stage);
         }
     }
 
-    update():void {
+    update(event:createjs.TickerEvent):void {
         for (var i = 0; i < this.gameObjects.length; i++) {
             var obj = this.gameObjects[i];
-            obj.update();
+                obj.update(event);
         }
     }
 
-    unloadContent(stage:createjs.Stage) : void {
+    unloadContent(stage:createjs.Stage):void {
         for (var i = 0; i < this.gameObjects.length; i++) {
             var obj = this.gameObjects[i];
             obj.unloadContent(stage);
