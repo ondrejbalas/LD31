@@ -16,6 +16,9 @@
     },
     "createjs-lib/createjs-lib.d.ts": {
       "commit": "f87a6264784613ee49f316c8addb94e355e140e4"
+    },
+    "preloadjs/preloadjs.d.ts": {
+      "commit": "e93470782b7fe48fbd7418f3229e24db587e9fe6"
     }
   }
 }

@@ -5,20 +5,25 @@ body {
 }
 
 .hero-unit {
-    margin: 50px auto 0 auto;
-    width: 300px;
+    margin: 10px auto 0 auto;
+    width: 800px;
     font-size: 18px;
     font-weight: 200;
     line-height: 30px;
     background-color: #eee;
     border-radius: 6px;
-    padding: 60px;
+    padding: 10px;
+}
+
+.hero-unit canvas {
+    margin-top: 20px;
 }
 
 .hero-unit h1 {
-    font-size: 60px;
+    font-size: 32px;
     line-height: 1;
     letter-spacing: -1px;
+    margin: 0 auto;
 }
 
 .browsehappy {
