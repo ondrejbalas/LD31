@@ -2,7 +2,7 @@ var GameObjectContainer = (function () {
     function GameObjectContainer() {
         this.gameObjects = [];
     }
-    GameObjectContainer.prototype.pushObjects = function (obj) {
+    GameObjectContainer.prototype.pushObject = function (obj) {
         this.gameObjects.push(obj);
     };
     GameObjectContainer.prototype.init = function () {
@@ -64,13 +64,27 @@ var TrafficLight = (function () {
     return TrafficLight;
 })();
 var Vehicle = (function () {
-    function Vehicle() {
+    function Vehicle(length, width, color) {
+        this.length = length;
+        this.width = width;
+        this.color = color;
     }
     Vehicle.prototype.init = function () {
+        this.x = Math.floor(100 + Math.random() * 500);
+        this.y = Math.floor(100 + Math.random() * 300);
+        this.heading = Math.floor(Math.random() * 360);
     };
     Vehicle.prototype.loadContent = function (stage) {
+        this.rect = new createjs.Shape();
+        //this.rect.regX = Math.floor(this.width / 2);
+        //this.rect.regY = Math.floor(this.length / 2);
+        this.rect.graphics.beginFill(this.color).drawRect(0, 0, this.width, this.length).setStrokeStyle(3).beginStroke('#000');
+        stage.addChild(this.rect);
     };
     Vehicle.prototype.update = function () {
+        this.rect.x = this.x;
+        this.rect.y = this.y;
+        this.rect.rotation = this.heading;
     };
     Vehicle.prototype.unloadContent = function (stage) {
     };
@@ -105,6 +119,10 @@ var World = (function (_super) {
     };
     World.prototype.init = function () {
         console.log('world:init enter');
+        this.pushObject(new Vehicle(40, 22, 'blue'));
+        this.pushObject(new Vehicle(40, 22, 'blue'));
+        this.pushObject(new Vehicle(40, 22, 'blue'));
+        this.pushObject(new Vehicle(40, 22, 'blue'));
         _super.prototype.init.call(this);
         console.log('world:init exit');
     };

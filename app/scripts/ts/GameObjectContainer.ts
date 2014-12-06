@@ -3,7 +3,7 @@
 class GameObjectContainer implements IGameObject {
     gameObjects:IGameObject[] = [];
 
-    pushObjects(obj:IGameObject):void {
+    pushObject(obj:IGameObject):void {
         this.gameObjects.push(obj);
     }
 

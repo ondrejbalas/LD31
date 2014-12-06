@@ -26,6 +26,10 @@ class World extends GameObjectContainer {
 
     init():void {
         console.log('world:init enter');
+        this.pushObject(new Vehicle(40, 22, 'blue'))
+        this.pushObject(new Vehicle(40, 22, 'blue'))
+        this.pushObject(new Vehicle(40, 22, 'blue'))
+        this.pushObject(new Vehicle(40, 22, 'blue'))
 
         super.init();
         console.log('world:init exit');
