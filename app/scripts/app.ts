@@ -4,7 +4,7 @@
 
 interface Window { helpers:any; }
 
-define(['PreloadJS', 'easeljs', './output'], function() {
+define(['PreloadJS', 'easeljs', 'underscore', './output'], function() {
     window.helpers = new Helpers() || {} ;
     var stage = new createjs.Stage('trafficcanvas');
     var world = new World(stage);

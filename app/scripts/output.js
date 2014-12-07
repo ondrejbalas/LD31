@@ -1,4 +1,36 @@
 ///<reference path="../../../typings/easeljs/easeljs.d.ts" />
+///<reference path="../../../typings/preloadjs/preloadjs.d.ts" />
+///<reference path="../../../typings/underscore/underscore.d.ts" />
+var AssetLibrary = (function () {
+    function AssetLibrary(basePath) {
+        this.basePath = basePath;
+    }
+    AssetLibrary.prototype.getImage = function (id) {
+        return this.loadQueue.getResult(id);
+    };
+    AssetLibrary.prototype.add = function (asset) {
+        console.log('asset requested: ' + asset.id);
+    };
+    AssetLibrary.prototype.addAll = function (assets) {
+        var _this = this;
+        _.each(assets, function (asset) {
+            _this.add(asset);
+        });
+    };
+    AssetLibrary.prototype.preload = function (callback) {
+        console.log('assetLibrary:preload enter');
+        this.loadQueue = new createjs.LoadQueue();
+        this.loadQueue.on('complete', callback, this);
+        //this.loadQueue.loadFile({id:'bgimg', src:'images/map-bg.png' });
+        this.loadQueue.loadManifest([
+            { id: 'bgimg', src: 'images/map-bg.png' },
+            { id: 'scorebg', src: 'images/scoreboard-bg.png' }
+        ]);
+        console.log('assetLibrary:preload exit');
+    };
+    return AssetLibrary;
+})();
+///<reference path="../../../typings/easeljs/easeljs.d.ts" />
 var GameObjectContainer = (function () {
     function GameObjectContainer() {
         this.gameObjects = [];
@@ -12,10 +44,21 @@ var GameObjectContainer = (function () {
             obj.init();
         }
     };
-    GameObjectContainer.prototype.loadContent = function (stage) {
+    GameObjectContainer.prototype.preload = function () {
+        var ret = [];
         for (var i = 0; i < this.gameObjects.length; i++) {
             var obj = this.gameObjects[i];
-            obj.loadContent(stage);
+            var arr = obj.preload();
+            for (var j = 0; j < arr.length; j++) {
+                ret.push(arr[j]);
+            }
+        }
+        return ret;
+    };
+    GameObjectContainer.prototype.loadContent = function (stage, lib) {
+        for (var i = 0; i < this.gameObjects.length; i++) {
+            var obj = this.gameObjects[i];
+            obj.loadContent(stage, lib);
         }
     };
     GameObjectContainer.prototype.update = function (event) {
@@ -37,32 +80,27 @@ var Helpers = (function () {
     }
     return Helpers;
 })();
-///<reference path="../../../typings/easeljs/easeljs.d.ts" />
-var Intersection = (function () {
-    function Intersection() {
+var IAssetPath = (function () {
+    function IAssetPath() {
     }
-    Intersection.prototype.init = function () {
-    };
-    Intersection.prototype.loadContent = function (stage) {
-    };
-    Intersection.prototype.update = function () {
-    };
-    Intersection.prototype.unloadContent = function (stage) {
-    };
-    return Intersection;
+    return IAssetPath;
 })();
-var TrafficLight = (function () {
-    function TrafficLight() {
+///<reference path="../../../typings/easeljs/easeljs.d.ts" />
+var ScoreBoard = (function () {
+    function ScoreBoard() {
     }
-    TrafficLight.prototype.init = function () {
+    ScoreBoard.prototype.init = function () {
     };
-    TrafficLight.prototype.loadContent = function (stage) {
+    ScoreBoard.prototype.preload = function () {
+        return [{ id: 'scorebg', src: 'scoreboard-bg.png' }];
     };
-    TrafficLight.prototype.update = function () {
+    ScoreBoard.prototype.loadContent = function (stage, lib) {
     };
-    TrafficLight.prototype.unloadContent = function (stage) {
+    ScoreBoard.prototype.update = function (event) {
     };
-    return TrafficLight;
+    ScoreBoard.prototype.unloadContent = function (stage) {
+    };
+    return ScoreBoard;
 })();
 var Vehicle = (function () {
     function Vehicle(length, width, color, heading, speed) {
@@ -78,7 +116,10 @@ var Vehicle = (function () {
         //this.heading = Math.floor(Math.random() * 360);
         //this.speed = 5 + Math.floor(Math.random() * 5);
     };
-    Vehicle.prototype.loadContent = function (stage) {
+    Vehicle.prototype.preload = function () {
+        return [];
+    };
+    Vehicle.prototype.loadContent = function (stage, lib) {
         this.rect = new createjs.Shape();
         //this.rect.regX = Math.floor(this.width / 2);
         //this.rect.regY = Math.floor(this.length / 2);
@@ -112,6 +153,7 @@ var World = (function (_super) {
     function World(stage) {
         _super.call(this);
         this.stage = stage;
+        this.lib = new AssetLibrary('images/');
         this.level = 1;
         console.log('starting world at level ' + this.level);
     }
@@ -120,8 +162,9 @@ var World = (function (_super) {
         //this.preload(() => { this.init(); });
         //this.preload(this.init);
         this.init();
-        this.preload(function () {
-            _this.loadContent(_this.stage);
+        this.lib.addAll(this.preload());
+        this.lib.preload(function () {
+            _this.loadContent(_this.stage, _this.lib);
             createjs.Ticker.addEventListener('tick', window.helpers.globaltick);
         });
     };
@@ -135,24 +178,22 @@ var World = (function (_super) {
         _super.prototype.init.call(this);
         console.log('world:init exit');
     };
-    World.prototype.loadContent = function (stage) {
+    World.prototype.preload = function () {
+        var paths = _super.prototype.preload.call(this);
+        paths.push({ id: 'bgimg', src: 'map-bg.png' });
+        return paths;
+    };
+    World.prototype.loadContent = function (stage, lib) {
         console.log('world:loadContent enter');
-        var asset = this.loadQueue.getResult('bgimg');
-        this.bgimg = new createjs.Bitmap(asset);
+        this.bgimg = new createjs.Bitmap(this.lib.getImage('bgimg'));
+        this.bgimg.x = 140;
         stage.addChild(this.bgimg);
-        _super.prototype.loadContent.call(this, stage);
+        _super.prototype.loadContent.call(this, stage, lib);
         console.log('world:loadContent exit');
     };
     World.prototype.update = function (event) {
         _super.prototype.update.call(this, event);
         this.stage.update();
-    };
-    World.prototype.preload = function (callback) {
-        console.log('world:preload enter');
-        this.loadQueue = new createjs.LoadQueue();
-        this.loadQueue.on('complete', callback, this);
-        this.loadQueue.loadFile({ id: 'bgimg', src: 'images/bg-start.png' });
-        console.log('world:preload exit');
     };
     return World;
 })(GameObjectContainer);

@@ -1,7 +1,7 @@
 ///<reference path="../../../typings/easeljs/easeljs.d.ts" />
 
 class GameObjectContainer implements IGameObject {
-    gameObjects:IGameObject[] = [];
+gameObjects:IGameObject[] = [];
 
     pushObject(obj:IGameObject):void {
         this.gameObjects.push(obj);
@@ -9,15 +9,27 @@ class GameObjectContainer implements IGameObject {
 
     init():void {
         for (var i = 0; i < this.gameObjects.length; i++) {
-          var obj = this.gameObjects[i];
+            var obj = this.gameObjects[i];
             obj.init();
         }
     }
 
-    loadContent(stage:createjs.Stage):void {
+    preload():IAssetPath[] {
+        var ret = [];
         for (var i = 0; i < this.gameObjects.length; i++) {
             var obj = this.gameObjects[i];
-            obj.loadContent(stage);
+            var arr = obj.preload();
+            for (var j = 0; j < arr.length; j++) {
+                ret.push(arr[j]);
+            }
+        }
+        return ret;
+    }
+
+    loadContent(stage:createjs.Stage, lib:AssetLibrary):void {
+        for (var i = 0; i < this.gameObjects.length; i++) {
+            var obj = this.gameObjects[i];
+            obj.loadContent(stage, lib);
         }
     }
 

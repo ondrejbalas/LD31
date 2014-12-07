@@ -13,7 +13,11 @@ class Vehicle implements IGameObject {
         //this.speed = 5 + Math.floor(Math.random() * 5);
     }
 
-    loadContent(stage:createjs.Stage):void {
+    preload():IAssetPath[] {
+        return [];
+    }
+
+    loadContent(stage:createjs.Stage, lib:AssetLibrary):void {
         this.rect = new createjs.Shape();
         //this.rect.regX = Math.floor(this.width / 2);
         //this.rect.regY = Math.floor(this.length / 2);

@@ -19,6 +19,9 @@
     },
     "preloadjs/preloadjs.d.ts": {
       "commit": "e93470782b7fe48fbd7418f3229e24db587e9fe6"
+    },
+    "underscore/underscore.d.ts": {
+      "commit": "e93470782b7fe48fbd7418f3229e24db587e9fe6"
     }
   }
 }

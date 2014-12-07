@@ -9,7 +9,8 @@ require.config({
         jquery: "../bower_components/jquery/jquery",
         requirejs: "../bower_components/requirejs/require",
         lodash: "../bower_components/lodash/dist/lodash.compat",
-        PreloadJS: "../bower_components/PreloadJS/lib/preloadjs-0.4.1.combined"
+        PreloadJS: "../bower_components/PreloadJS/lib/preloadjs-0.4.1.combined",
+        underscore: "../bower_components/underscore/underscore"
     },
     packages: [
 

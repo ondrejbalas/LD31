@@ -6,7 +6,7 @@ class World extends GameObjectContainer {
     level:number;
     bgimg:createjs.Bitmap;
 
-    loadQueue:createjs.LoadQueue;
+    lib:AssetLibrary = new AssetLibrary('images/');
 
     constructor(public stage:createjs.Stage) {
         super();
@@ -18,8 +18,9 @@ class World extends GameObjectContainer {
         //this.preload(() => { this.init(); });
         //this.preload(this.init);
         this.init();
-        this.preload(() => {
-            this.loadContent(this.stage);
+        this.lib.addAll(this.preload());
+        this.lib.preload(() => {
+            this.loadContent(this.stage, this.lib);
             createjs.Ticker.addEventListener('tick', window.helpers.globaltick);
         });
     }
@@ -37,28 +38,26 @@ class World extends GameObjectContainer {
         console.log('world:init exit');
     }
 
-    loadContent(stage:createjs.Stage):void {
+    preload():IAssetPath[] {
+        var paths = super.preload();
+        paths.push({id: 'bgimg', src: 'map-bg.png'});
+        return paths;
+    }
+
+    loadContent(stage:createjs.Stage, lib:AssetLibrary):void {
         console.log('world:loadContent enter')
 
-        var asset = <HTMLImageElement> this.loadQueue.getResult('bgimg');
-        this.bgimg = new createjs.Bitmap(asset);
+        this.bgimg = new createjs.Bitmap(this.lib.getImage('bgimg'));
+        this.bgimg.x = 140;
 
         stage.addChild(this.bgimg);
 
-        super.loadContent(stage);
+        super.loadContent(stage, lib);
         console.log('world:loadContent exit')
     }
 
     update(event:createjs.TickerEvent):void {
         super.update(event);
         this.stage.update();
-    }
-
-    preload(callback: () => void):void {
-        console.log('world:preload enter');
-        this.loadQueue = new createjs.LoadQueue();
-        this.loadQueue.on('complete', callback, this);
-        this.loadQueue.loadFile({id:'bgimg', src:'images/bg-start.png' });
-        console.log('world:preload exit');
     }
 }
