@@ -20,6 +20,21 @@ declare class GameObjectContainer implements IGameObject {
     update(event: createjs.TickerEvent): void;
     unloadContent(stage: createjs.Stage): void;
 }
+declare class GridOverlay implements IGameObject {
+    color: string;
+    squareSize: number;
+    width: number;
+    height: number;
+    offsetX: number;
+    offsetY: number;
+    grid: createjs.Shape;
+    constructor(color: string, squareSize: number, width: number, height: number, offsetX: number, offsetY: number);
+    init(): void;
+    preload(): IAssetPath[];
+    loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
+    update(event: createjs.TickerEvent): void;
+    unloadContent(stage: createjs.Stage): void;
+}
 declare class Helpers {
     globaltick: any;
 }
@@ -48,10 +63,12 @@ declare class Vehicle implements IGameObject {
     color: string;
     heading: number;
     speed: number;
+    startX: number;
+    startY: number;
     x: number;
     y: number;
     rect: createjs.Shape;
-    constructor(length: number, width: number, color: string, heading: number, speed: number);
+    constructor(length: number, width: number, color: string, heading: number, speed: number, startX: number, startY: number);
     init(): void;
     preload(): IAssetPath[];
     loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
@@ -62,6 +79,7 @@ declare class World extends GameObjectContainer {
     stage: createjs.Stage;
     level: number;
     scoreboard: ScoreBoard;
+    grid: GridOverlay;
     bgimg: createjs.Bitmap;
     lib: AssetLibrary;
     constructor(stage: createjs.Stage);

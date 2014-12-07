@@ -3,12 +3,21 @@ class Vehicle implements IGameObject {
     y:number;
     rect:createjs.Shape;
 
-    constructor(public length:number, public width:number, public color:string, public heading: number, public speed: number) {
+    constructor(public length:number,
+                public width:number,
+                public color:string,
+                public heading: number,
+                public speed: number,
+                public startX: number,
+                public startY: number)
+    {
+        this.x = 136 + startX * 32;
+        this.y = 16 + startY * 32;
     }
 
     init():void {
-        this.x = Math.floor(100 + Math.random() * 500);
-        this.y = Math.floor(100 + Math.random() * 300);
+        //this.x = Math.floor(100 + Math.random() * 500);
+        //this.y = Math.floor(100 + Math.random() * 300);
         //this.heading = Math.floor(Math.random() * 360);
         //this.speed = 5 + Math.floor(Math.random() * 5);
     }

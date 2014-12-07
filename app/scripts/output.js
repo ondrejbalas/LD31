@@ -75,6 +75,43 @@ var GameObjectContainer = (function () {
     };
     return GameObjectContainer;
 })();
+var GridOverlay = (function () {
+    function GridOverlay(color, squareSize, width, height, offsetX, offsetY) {
+        this.color = color;
+        this.squareSize = squareSize;
+        this.width = width;
+        this.height = height;
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
+    }
+    GridOverlay.prototype.init = function () {
+    };
+    GridOverlay.prototype.preload = function () {
+        return [];
+    };
+    GridOverlay.prototype.loadContent = function (stage, lib) {
+        this.grid = new createjs.Shape();
+        this.grid.x = this.offsetX;
+        this.grid.y = this.offsetY;
+        var g = this.grid.graphics;
+        g.setStrokeStyle(1).beginStroke(this.color);
+        for (var x = this.squareSize; x < this.width; x += this.squareSize) {
+            g.mt(x, 0);
+            g.lt(x, this.height);
+        }
+        for (var y = this.squareSize; y < this.height; y += this.squareSize) {
+            g.mt(0, y);
+            g.lt(this.width, y);
+        }
+        this.grid.graphics.endStroke();
+        stage.addChild(this.grid);
+    };
+    GridOverlay.prototype.update = function (event) {
+    };
+    GridOverlay.prototype.unloadContent = function (stage) {
+    };
+    return GridOverlay;
+})();
 var Helpers = (function () {
     function Helpers() {
     }
@@ -105,16 +142,20 @@ var ScoreBoard = (function () {
     return ScoreBoard;
 })();
 var Vehicle = (function () {
-    function Vehicle(length, width, color, heading, speed) {
+    function Vehicle(length, width, color, heading, speed, startX, startY) {
         this.length = length;
         this.width = width;
         this.color = color;
         this.heading = heading;
         this.speed = speed;
+        this.startX = startX;
+        this.startY = startY;
+        this.x = 136 + startX * 32;
+        this.y = 16 + startY * 32;
     }
     Vehicle.prototype.init = function () {
-        this.x = Math.floor(100 + Math.random() * 500);
-        this.y = Math.floor(100 + Math.random() * 300);
+        //this.x = Math.floor(100 + Math.random() * 500);
+        //this.y = Math.floor(100 + Math.random() * 300);
         //this.heading = Math.floor(Math.random() * 360);
         //this.speed = 5 + Math.floor(Math.random() * 5);
     };
@@ -174,11 +215,13 @@ var World = (function (_super) {
         console.log('world:init enter');
         createjs.Ticker.setFPS(60);
         this.scoreboard = new ScoreBoard();
-        this.pushObject(new Vehicle(40, 22, 'blue', 0, 10));
-        this.pushObject(new Vehicle(40, 22, 'red', 90, 15));
-        this.pushObject(new Vehicle(40, 22, 'purple', 180, 20));
-        this.pushObject(new Vehicle(40, 22, 'yellow', 270, 25));
+        this.grid = new GridOverlay('#999', 32, 1024, 640, 120, 0);
+        this.pushObject(new Vehicle(28, 12, 'blue', 0, 20, 10, 17));
+        this.pushObject(new Vehicle(28, 12, 'red', 90, 25, 10, 1));
+        this.pushObject(new Vehicle(28, 12, 'purple', 180, 30, 2, 5));
+        this.pushObject(new Vehicle(28, 12, 'yellow', 270, 35, 29, 1));
         this.pushObject(this.scoreboard);
+        this.pushObject(this.grid);
         _super.prototype.init.call(this);
         console.log('world:init exit');
     };
@@ -190,7 +233,7 @@ var World = (function (_super) {
     World.prototype.loadContent = function (stage, lib) {
         console.log('world:loadContent enter');
         this.bgimg = new createjs.Bitmap(lib.getImage('bgimg'));
-        this.bgimg.x = 140;
+        this.bgimg.x = 120;
         stage.addChild(this.bgimg);
         _super.prototype.loadContent.call(this, stage, lib);
         console.log('world:loadContent exit');
