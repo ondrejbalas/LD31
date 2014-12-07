@@ -4,6 +4,7 @@ class GameObjectContainer implements IGameObject {
 gameObjects:IGameObject[] = [];
 
     pushObject(obj:IGameObject):void {
+        if(this.gameObjects === undefined) debugger;
         this.gameObjects.push(obj);
     }
 

@@ -83,7 +83,7 @@ declare enum VehicleStates {
 declare class Vehicle implements IGameObject {
     length: number;
     width: number;
-    color: string;
+    imgid: string;
     heading: number;
     speed: number;
     startX: number;
@@ -92,13 +92,13 @@ declare class Vehicle implements IGameObject {
     x: number;
     y: number;
     highlight: createjs.Shape;
-    rect: createjs.Shape;
+    img: createjs.Bitmap;
     state: VehicleStates;
     desiredHeading: number;
     speedcap: number;
     allowLeftTurn: (x: number, y: number) => boolean;
     leftTurnInProgress: boolean;
-    constructor(length: number, width: number, color: string, heading: number, speed: number, startX: number, startY: number, mapData: BgMap);
+    constructor(length: number, width: number, imgid: string, heading: number, speed: number, startX: number, startY: number, mapData: BgMap);
     init(): void;
     preload(): IAssetPath[];
     loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
@@ -107,12 +107,19 @@ declare class Vehicle implements IGameObject {
     update(event: createjs.TickerEvent): void;
     unloadContent(stage: createjs.Stage): void;
 }
+declare class VehicleFactory extends GameObjectContainer {
+    mapData: BgMap;
+    constructor(mapData: BgMap);
+    init(): void;
+    preload(): IAssetPath[];
+}
 declare class World extends GameObjectContainer {
     stage: createjs.Stage;
     level: number;
     scoreboard: ScoreBoard;
     map: BgMap;
     grid: GridOverlay;
+    factory: VehicleFactory;
     bgimg: createjs.Bitmap;
     lib: AssetLibrary;
     constructor(stage: createjs.Stage);

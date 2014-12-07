@@ -199,6 +199,8 @@ var GameObjectContainer = (function () {
         this.gameObjects = [];
     }
     GameObjectContainer.prototype.pushObject = function (obj) {
+        if (this.gameObjects === undefined)
+            debugger;
         this.gameObjects.push(obj);
     };
     GameObjectContainer.prototype.init = function () {
@@ -313,10 +315,10 @@ var VehicleStates;
 })(VehicleStates || (VehicleStates = {}));
 ;
 var Vehicle = (function () {
-    function Vehicle(length, width, color, heading, speed, startX, startY, mapData) {
+    function Vehicle(length, width, imgid, heading, speed, startX, startY, mapData) {
         this.length = length;
         this.width = width;
-        this.color = color;
+        this.imgid = imgid;
         this.heading = heading;
         this.speed = speed;
         this.startX = startX;
@@ -339,14 +341,15 @@ var Vehicle = (function () {
         return [];
     };
     Vehicle.prototype.loadContent = function (stage, lib) {
-        this.rect = new createjs.Shape();
-        this.rect.regX = Math.floor(this.width / 2);
-        this.rect.regY = Math.floor(this.length / 2);
-        this.rect.graphics.beginFill(this.color).drawRect(0, 0, this.width, this.length);
-        this.highlight = new createjs.Shape();
-        this.highlight.graphics.beginFill('yellow').drawRect(8, 8, 16, 16);
-        stage.addChild(this.rect);
-        stage.addChild(this.highlight);
+        this.img = new createjs.Bitmap(lib.getImage(this.imgid));
+        this.img.regX = Math.floor(this.width / 2);
+        this.img.regY = Math.floor(this.length / 2);
+        stage.addChild(this.img);
+        //this.highlight = new createjs.Shape();
+        //this.highlight.graphics
+        //    .beginFill('yellow')
+        //    .drawRect(8, 8, 16, 16);
+        //stage.addChild(this.highlight);
     };
     Vehicle.prototype.turnTowardsHeading = function (heading, desiredHeading, maxAbsTurnAngle, turnDirection) {
         var tempDesired = desiredHeading;
@@ -409,13 +412,13 @@ var Vehicle = (function () {
                 this.leftTurnInProgress = false;
                 this.allowLeftTurn = function (x, y) {
                     if (wasHeading === 270)
-                        return x < newX - 16;
+                        return x < newX - 21;
                     if (wasHeading === 90)
-                        return x > newX + 16;
+                        return x > newX + 21;
                     if (wasHeading === 180)
-                        return y > newY + 16;
+                        return y > newY + 21;
                     if (wasHeading === 0)
-                        return y < newY - 16;
+                        return y < newY - 21;
                 };
                 this.state = 2 /* TurningLeft */;
             }
@@ -455,9 +458,9 @@ var Vehicle = (function () {
                     if (headingEorW(this.heading)) {
                         var optimalY = 0;
                         if (this.heading === 90)
-                            optimalY = 24 + (newSqY * 32);
+                            optimalY = (19 + this.width) + (newSqY * 32);
                         if (this.heading === 270)
-                            optimalY = 8 + (newSqY * 32);
+                            optimalY = (13 - this.width) + (newSqY * 32); // 12 = 2, 10 = 4
                         if (newY < optimalY)
                             newY = newY + Math.min(generalVelocity, optimalY - newY);
                         if (newY > optimalY)
@@ -466,9 +469,9 @@ var Vehicle = (function () {
                     if (headingNorS(this.heading)) {
                         var optimalX;
                         if (this.heading === 0)
-                            optimalX = 24 + (newSqX * 32);
+                            optimalX = (19 + this.width) + (newSqX * 32);
                         if (this.heading === 180)
-                            optimalX = 8 + (newSqX * 32);
+                            optimalX = (13 - this.width) + (newSqX * 32);
                         if (newX < optimalX)
                             newX = newX + Math.min(generalVelocity, optimalX - newX);
                         if (newX > optimalX)
@@ -478,14 +481,14 @@ var Vehicle = (function () {
                 }
             case 3 /* TurningRight */:
                 {
-                    this.heading = this.turnTowardsHeading(this.heading, this.desiredHeading, 6 * this.speed * (event.delta / 1000), 1);
+                    this.heading = this.turnTowardsHeading(this.heading, this.desiredHeading, 8 * this.speed * (event.delta / 1000), 1);
                     break;
                 }
             case 2 /* TurningLeft */:
                 {
                     if (this.leftTurnInProgress || this.allowLeftTurn(newX, newY)) {
                         this.leftTurnInProgress = true;
-                        this.heading = this.turnTowardsHeading(this.heading, this.desiredHeading, 6 * this.speed * (event.delta / 1000), -1);
+                        this.heading = this.turnTowardsHeading(this.heading, this.desiredHeading, 8 * this.speed * (event.delta / 1000), -1);
                     }
                     break;
                 }
@@ -496,23 +499,46 @@ var Vehicle = (function () {
         this.x = newX;
         this.y = newY;
         // adjust draw position now
-        this.rect.x = Math.floor(this.x) + 120;
-        this.rect.y = Math.floor(this.y);
-        this.rect.rotation = this.heading;
+        this.img.x = Math.floor(this.x) + 120;
+        this.img.y = Math.floor(this.y);
+        this.img.rotation = (this.heading + 270) % 360;
     };
     Vehicle.prototype.unloadContent = function (stage) {
     };
     return Vehicle;
 })();
-///<reference path="../../../typings/easeljs/easeljs.d.ts" />
-///<reference path="../../../typings/preloadjs/preloadjs.d.ts" />
-///<reference path="../app.d.ts" />
 var __extends = this.__extends || function (d, b) {
     for (var p in b) if (b.hasOwnProperty(p)) d[p] = b[p];
     function __() { this.constructor = d; }
     __.prototype = b.prototype;
     d.prototype = new __();
 };
+var VehicleFactory = (function (_super) {
+    __extends(VehicleFactory, _super);
+    function VehicleFactory(mapData) {
+        _super.call(this);
+        this.mapData = mapData;
+    }
+    VehicleFactory.prototype.init = function () {
+        this.pushObject(new Vehicle(28, 12, 'sportscar', 0, 100, 10, 4, this.mapData));
+        this.pushObject(new Vehicle(28, 12, 'minivan', 180, 75, 10, 2, this.mapData));
+        this.pushObject(new Vehicle(28, 12, 'truck', 180, 50, 2, 14, this.mapData));
+        this.pushObject(new Vehicle(28, 12, 'sportscar', 180, 50, 2, 15, this.mapData));
+        this.pushObject(new Vehicle(28, 12, 'sportscar', 180, 100, 2, 10, this.mapData));
+        _super.prototype.init.call(this);
+    };
+    VehicleFactory.prototype.preload = function () {
+        var paths = _super.prototype.preload.call(this);
+        paths.push({ id: 'minivan', src: 'minivan.png' }); // 24 x 10
+        paths.push({ id: 'sportscar', src: 'sportscar.png' }); // 21 x 12
+        paths.push({ id: 'truck', src: 'truck.png' }); // 28 x 12
+        return paths;
+    };
+    return VehicleFactory;
+})(GameObjectContainer);
+///<reference path="../../../typings/easeljs/easeljs.d.ts" />
+///<reference path="../../../typings/preloadjs/preloadjs.d.ts" />
+///<reference path="../app.d.ts" />
 var World = (function (_super) {
     __extends(World, _super);
     function World(stage) {
@@ -538,14 +564,16 @@ var World = (function (_super) {
         createjs.Ticker.setFPS(60);
         this.map = new BgMap(false);
         this.scoreboard = new ScoreBoard();
+        this.factory = new VehicleFactory(this.map);
         this.grid = new GridOverlay('#999', 32, 1024, 640, 120, 0);
         this.pushObject(this.map);
-        this.pushObject(new Vehicle(28, 12, 'blue', 0, 30, 10, 4, this.map));
-        this.pushObject(new Vehicle(28, 12, 'red', 180, 30, 10, 2, this.map));
+        this.pushObject(this.factory);
+        //this.pushObject(new Vehicle(28, 12, 'blue', 0, 100, 10, 4, this.map))
+        //this.pushObject(new Vehicle(28, 12, 'red', 180, 100, 10, 2, this.map))
         //this.pushObject(new Vehicle(28, 12, 'purple', 180, 4, 2, 5, this.map))
         //this.pushObject(new Vehicle(28, 12, 'yellow', 270, 4, 29, 1, this.map))
         this.pushObject(this.scoreboard);
-        this.pushObject(this.grid);
+        //this.pushObject(this.grid);
         _super.prototype.init.call(this);
         console.log('world:init exit');
     };

@@ -9,7 +9,7 @@ class Vehicle implements IGameObject {
     x:number;
     y:number;
     highlight:createjs.Shape;
-    rect:createjs.Shape;
+    img:createjs.Bitmap;
     state:VehicleStates;
     desiredHeading:number;
     speedcap:number;
@@ -19,7 +19,7 @@ class Vehicle implements IGameObject {
 
     constructor(public length:number,
                 public width:number,
-                public color:string,
+                public imgid:string,
                 public heading:number,
                 public speed:number,
                 public startX:number,
@@ -45,20 +45,16 @@ class Vehicle implements IGameObject {
     }
 
     loadContent(stage:createjs.Stage, lib:AssetLibrary):void {
-        this.rect = new createjs.Shape();
-        this.rect.regX = Math.floor(this.width / 2);
-        this.rect.regY = Math.floor(this.length / 2);
-        this.rect.graphics
-            .beginFill(this.color)
-            .drawRect(0, 0, this.width, this.length);
+        this.img = new createjs.Bitmap(lib.getImage(this.imgid));
+        this.img.regX = Math.floor(this.width / 2);
+        this.img.regY = Math.floor(this.length / 2);
+        stage.addChild(this.img);
 
-        this.highlight = new createjs.Shape();
-        this.highlight.graphics
-            .beginFill('yellow')
-            .drawRect(8, 8, 16, 16);
-
-        stage.addChild(this.rect);
-        stage.addChild(this.highlight);
+        //this.highlight = new createjs.Shape();
+        //this.highlight.graphics
+        //    .beginFill('yellow')
+        //    .drawRect(8, 8, 16, 16);
+        //stage.addChild(this.highlight);
     }
 
     turnTowardsHeading(heading:number, desiredHeading:number, maxAbsTurnAngle:number, turnDirection:number):number {
@@ -124,10 +120,10 @@ class Vehicle implements IGameObject {
                 //console.log('turning left');
                 this.leftTurnInProgress = false;
                 this.allowLeftTurn = (x, y) => {
-                    if(wasHeading === 270) return x < newX - 16;
-                    if(wasHeading === 90) return x > newX + 16;
-                    if(wasHeading === 180) return y > newY + 16;
-                    if(wasHeading === 0) return y < newY - 16;
+                    if(wasHeading === 270) return x < newX - 21;
+                    if(wasHeading === 90) return x > newX + 21;
+                    if(wasHeading === 180) return y > newY + 21;
+                    if(wasHeading === 0) return y < newY - 21;
                 }
 
                 this.state = VehicleStates.TurningLeft;
@@ -170,30 +166,30 @@ class Vehicle implements IGameObject {
                 // if not in my lane, move towards the optimal position for my heading
                 if(headingEorW(this.heading)) {
                     var optimalY = 0;
-                    if(this.heading === 90) optimalY = 24 + (newSqY * 32);
-                    if(this.heading === 270) optimalY = 8 + (newSqY * 32);
+                    if(this.heading === 90) optimalY = (19 + this.width) + (newSqY * 32);
+                    if(this.heading === 270) optimalY = (13 - this.width) + (newSqY * 32); // 12 = 2, 10 = 4
                     if(newY < optimalY) newY = newY + Math.min(generalVelocity, optimalY - newY);
                     if(newY > optimalY) newY = newY - Math.min(generalVelocity, newY - optimalY);
                 }
 
                 if(headingNorS(this.heading)) {
                     var optimalX;
-                    if(this.heading === 0) optimalX = 24 + (newSqX * 32);
-                    if(this.heading === 180) optimalX = 8 + (newSqX * 32);
+                    if(this.heading === 0) optimalX = (19 + this.width) + (newSqX * 32);
+                    if(this.heading === 180) optimalX = (13 - this.width) + (newSqX * 32);
                     if(newX < optimalX) newX = newX + Math.min(generalVelocity, optimalX - newX);
                     if(newX > optimalX) newX = newX - Math.min(generalVelocity, newX - optimalX);
                 }
                 break;
             }
             case VehicleStates.TurningRight: {
-                this.heading = this.turnTowardsHeading(this.heading, this.desiredHeading, 6 * this.speed * (event.delta / 1000), 1);
+                this.heading = this.turnTowardsHeading(this.heading, this.desiredHeading, 8 * this.speed * (event.delta / 1000), 1);
                 break;
             }
             case VehicleStates.TurningLeft: {
                 if(this.leftTurnInProgress || this.allowLeftTurn(newX, newY))
                 {
                     this.leftTurnInProgress = true;
-                    this.heading = this.turnTowardsHeading(this.heading, this.desiredHeading, 6 * this.speed * (event.delta / 1000), -1);
+                    this.heading = this.turnTowardsHeading(this.heading, this.desiredHeading, 8 * this.speed * (event.delta / 1000), -1);
                 }
                 break;
             }
@@ -207,9 +203,9 @@ class Vehicle implements IGameObject {
         this.y = newY;
 
         // adjust draw position now
-        this.rect.x = Math.floor(this.x) + 120;
-        this.rect.y = Math.floor(this.y);
-        this.rect.rotation = this.heading;
+        this.img.x = Math.floor(this.x) + 120;
+        this.img.y = Math.floor(this.y);
+        this.img.rotation = (this.heading + 270) % 360;
     }
 
     unloadContent(stage:createjs.Stage):void {
