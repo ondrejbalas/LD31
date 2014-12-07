@@ -11,7 +11,11 @@ class Vehicle implements IGameObject {
     highlight:createjs.Shape;
     rect:createjs.Shape;
     state:VehicleStates;
-    desiredHeading: number;
+    desiredHeading:number;
+    speedcap:number;
+
+    allowLeftTurn: (x:number, y:number) => boolean;
+    leftTurnInProgress:boolean = false;
 
     constructor(public length:number,
                 public width:number,
@@ -33,6 +37,7 @@ class Vehicle implements IGameObject {
         //this.y = Math.floor(100 + Math.random() * 300);
         //this.heading = Math.floor(Math.random() * 360);
         //this.speed = 5 + Math.floor(Math.random() * 5);
+        this.speedcap = 10;
     }
 
     preload():IAssetPath[] {
@@ -80,9 +85,9 @@ class Vehicle implements IGameObject {
         return turnAmount;
     }
 
-    decideNextAction(oldSqX:number, oldSqY:number, newSqX:number, newSqY:number):void {
+    decideNextAction(oldSqX:number, oldSqY:number, newSqX:number, newSqY:number, newX:number, newY:number):void {
         // vehicle is entering a new square. figure out what it should be doing next.
-        console.log('was in (' + oldSqX + ',' + oldSqY + ') and now in (' + newSqX + ',' + newSqY + ')');
+        //console.log('was in (' + oldSqX + ',' + oldSqY + ') and now in (' + newSqX + ',' + newSqY + ')');
 
         var sqValidS = this.desiredHeading === 0 ? 0 : this.mapData.squares[newSqX][newSqY + 1];
         var sqValidW = this.desiredHeading === 90 ? 0 : this.mapData.squares[newSqX - 1][newSqY];
@@ -95,7 +100,7 @@ class Vehicle implements IGameObject {
             (this.desiredHeading === 270 && sqValidW))
         {
             // Going straight
-            console.log('going straight!')
+            //console.log('going straight!')
             this.state = VehicleStates.MovingForward;
         }
         else {
@@ -112,11 +117,19 @@ class Vehicle implements IGameObject {
 
             if(wasHeading + 90 === this.desiredHeading || wasHeading === 270 && this.desiredHeading === 0) {
                 this.state = VehicleStates.TurningRight;
-                console.log('turning right!')
+                //console.log('turning right!')
             }
             else
             {
-                console.log('turning left');
+                //console.log('turning left');
+                this.leftTurnInProgress = false;
+                this.allowLeftTurn = (x, y) => {
+                    if(wasHeading === 270) return x < newX - 16;
+                    if(wasHeading === 90) return x > newX + 16;
+                    if(wasHeading === 180) return y > newY + 16;
+                    if(wasHeading === 0) return y < newY - 16;
+                }
+
                 this.state = VehicleStates.TurningLeft;
             }
         }
@@ -127,9 +140,9 @@ class Vehicle implements IGameObject {
         var oldX = this.x;
         var oldY = this.y;
 
-        // figure out velocity based on heading. cap it at 4 pixels of movement since last frame
-        var xVelocity = Math.min(4, Math.sin(this.heading * (Math.PI / 180)) * (this.speed * event.delta / 1000));
-        var yVelocity = -Math.min(4, Math.cos(this.heading * (Math.PI / 180)) * (this.speed * event.delta / 1000));
+        // figure out velocity based on heading. cap it at (this.speedcap) pixels of movement since last frame
+        var xVelocity = Math.max(-this.speedcap, Math.min(this.speedcap, Math.sin(this.heading * (Math.PI / 180)) * (this.speed * event.delta / 1000)));
+        var yVelocity = -Math.max(-this.speedcap, Math.min(this.speedcap, Math.cos(this.heading * (Math.PI / 180)) * (this.speed * event.delta / 1000)));
         var generalVelocity = (this.speed * event.delta / 1000);
 
         // Adjust new position based on velocity
@@ -151,7 +164,7 @@ class Vehicle implements IGameObject {
         switch (this.state) {
             case VehicleStates.MovingForward: {
                 // in case something got screwed up (dropped frames, etc) set heading to desiredHeading;
-                if(this.heading !== this.desiredHeading) console.log('heading issue. was ' + this.heading + ' should be ' + this.desiredHeading);
+                //if(this.heading !== this.desiredHeading) console.log('heading issue. was ' + this.heading + ' should be ' + this.desiredHeading);
                 this.heading = this.desiredHeading;
 
                 // if not in my lane, move towards the optimal position for my heading
@@ -159,7 +172,6 @@ class Vehicle implements IGameObject {
                     var optimalY = 0;
                     if(this.heading === 90) optimalY = 24 + (newSqY * 32);
                     if(this.heading === 270) optimalY = 8 + (newSqY * 32);
-                    if(newY !== optimalY) console.log('Making Y adjustment')
                     if(newY < optimalY) newY = newY + Math.min(generalVelocity, optimalY - newY);
                     if(newY > optimalY) newY = newY - Math.min(generalVelocity, newY - optimalY);
                 }
@@ -168,7 +180,6 @@ class Vehicle implements IGameObject {
                     var optimalX;
                     if(this.heading === 0) optimalX = 24 + (newSqX * 32);
                     if(this.heading === 180) optimalX = 8 + (newSqX * 32);
-                    if(newX !== optimalX) console.log('Making X adjustment')
                     if(newX < optimalX) newX = newX + Math.min(generalVelocity, optimalX - newX);
                     if(newX > optimalX) newX = newX - Math.min(generalVelocity, newX - optimalX);
                 }
@@ -179,55 +190,17 @@ class Vehicle implements IGameObject {
                 break;
             }
             case VehicleStates.TurningLeft: {
-                this.heading = this.turnTowardsHeading(this.heading, this.desiredHeading, 6 * this.speed * (event.delta / 1000), -1);
+                if(this.leftTurnInProgress || this.allowLeftTurn(newX, newY))
+                {
+                    this.leftTurnInProgress = true;
+                    this.heading = this.turnTowardsHeading(this.heading, this.desiredHeading, 6 * this.speed * (event.delta / 1000), -1);
+                }
                 break;
             }
         }
-        //
-        //
-        //
-        //
-        //
-        //if(this.desiredHeading === 0) newY = oldY - velocity;
-        //if(this.desiredHeading === 90) newX = oldX + velocity;
-        //if(this.desiredHeading === 180) newY = oldY + velocity;
-        //if(this.desiredHeading === 270) newX = oldX - velocity;
-        //
-        //
-        //
-        //var farEnoughIntoSquareToTurn = false;
-        //if(this.heading === 0) {
-        //    if(this.desiredHeading === 90) {
-        //
-        //    }
-        //    farEnoughIntoSquareToTurn = newY % 32 < 8;
-        //}
-        //
-        //if((this.state === VehicleStates.MovingForward || this.state === VehicleStates.WaitingAtIntersection)
-        //        || farEnoughIntoSquareToTurn)
-        //{
-        //    if (this.desiredHeading === 90 || this.desiredHeading === 270)
-        //    {
-        //        // moving east or west. adjust towards optimal y Height
-        //        var optimalY = newSqY * 32;
-        //        if (newY > optimalY) {
-        //            newY -= velocity;
-        //            if (newY < velocity) {
-        //                newY = optimalY
-        //            }
-        //        }
-        //        if (newY < optimalY) {
-        //            newY += velocity;
-        //            if (newY > optimalY) {
-        //                newY = optimalY;
-        //            }
-        //        }
-        //    }
-        //}
-
 
         if(enteredNewSquare) {
-            this.decideNextAction(oldSqX, oldSqY, newSqX, newSqY);
+            this.decideNextAction(oldSqX, oldSqY, newSqX, newSqY, newX, newY);
         }
 
         this.x = newX;
@@ -237,23 +210,6 @@ class Vehicle implements IGameObject {
         this.rect.x = Math.floor(this.x) + 120;
         this.rect.y = Math.floor(this.y);
         this.rect.rotation = this.heading;
-
-        //
-        //this.highlight.x = (newSqX * 32) + 120;
-        //this.highlight.y = newSqY * 32;
-        //
-        //var xAdjust = Math.abs(this.heading - 180);
-        //this.rect.x += 8 + ((xAdjust / 180) * 16);
-        //
-        //var yAdjust = Math.abs(this.heading - 270);
-        //if(yAdjust < -180) yAdjust += 360;
-        //this.rect.y += 8 + ((yAdjust / 180) * 16);
-
-        //if(this.heading === 0) this.rect.x += 24;
-        //if(this.heading === 180) this.rect.x += 8;
-        //if(this.heading === 90) this.rect.y += 24;
-        //if(this.heading === 270) this.rect.y += 8;
-
     }
 
     unloadContent(stage:createjs.Stage):void {

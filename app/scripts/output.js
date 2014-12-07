@@ -322,6 +322,7 @@ var Vehicle = (function () {
         this.startX = startX;
         this.startY = startY;
         this.mapData = mapData;
+        this.leftTurnInProgress = false;
         this.x = 16 + startX * 32;
         this.y = 16 + startY * 32;
         this.state = 1 /* MovingForward */;
@@ -332,6 +333,7 @@ var Vehicle = (function () {
         //this.y = Math.floor(100 + Math.random() * 300);
         //this.heading = Math.floor(Math.random() * 360);
         //this.speed = 5 + Math.floor(Math.random() * 5);
+        this.speedcap = 10;
     };
     Vehicle.prototype.preload = function () {
         return [];
@@ -368,16 +370,16 @@ var Vehicle = (function () {
             debugger;
         return turnAmount;
     };
-    Vehicle.prototype.decideNextAction = function (oldSqX, oldSqY, newSqX, newSqY) {
+    Vehicle.prototype.decideNextAction = function (oldSqX, oldSqY, newSqX, newSqY, newX, newY) {
         // vehicle is entering a new square. figure out what it should be doing next.
-        console.log('was in (' + oldSqX + ',' + oldSqY + ') and now in (' + newSqX + ',' + newSqY + ')');
+        //console.log('was in (' + oldSqX + ',' + oldSqY + ') and now in (' + newSqX + ',' + newSqY + ')');
         var sqValidS = this.desiredHeading === 0 ? 0 : this.mapData.squares[newSqX][newSqY + 1];
         var sqValidW = this.desiredHeading === 90 ? 0 : this.mapData.squares[newSqX - 1][newSqY];
         var sqValidN = this.desiredHeading === 180 ? 0 : this.mapData.squares[newSqX][newSqY - 1];
         var sqValidE = this.desiredHeading === 270 ? 0 : this.mapData.squares[newSqX + 1][newSqY];
         if ((this.desiredHeading === 0 && sqValidN) || (this.desiredHeading === 90 && sqValidE) || (this.desiredHeading === 180 && sqValidS) || (this.desiredHeading === 270 && sqValidW)) {
             // Going straight
-            console.log('going straight!');
+            //console.log('going straight!')
             this.state = 1 /* MovingForward */;
         }
         else {
@@ -401,10 +403,20 @@ var Vehicle = (function () {
                 this.desiredHeading = 180;
             if (wasHeading + 90 === this.desiredHeading || wasHeading === 270 && this.desiredHeading === 0) {
                 this.state = 3 /* TurningRight */;
-                console.log('turning right!');
             }
             else {
-                console.log('turning left');
+                //console.log('turning left');
+                this.leftTurnInProgress = false;
+                this.allowLeftTurn = function (x, y) {
+                    if (wasHeading === 270)
+                        return x < newX - 16;
+                    if (wasHeading === 90)
+                        return x > newX + 16;
+                    if (wasHeading === 180)
+                        return y > newY + 16;
+                    if (wasHeading === 0)
+                        return y < newY - 16;
+                };
                 this.state = 2 /* TurningLeft */;
             }
         }
@@ -413,9 +425,9 @@ var Vehicle = (function () {
         // remember where i was last tick
         var oldX = this.x;
         var oldY = this.y;
-        // figure out velocity based on heading. cap it at 4 pixels of movement since last frame
-        var xVelocity = Math.min(4, Math.sin(this.heading * (Math.PI / 180)) * (this.speed * event.delta / 1000));
-        var yVelocity = -Math.min(4, Math.cos(this.heading * (Math.PI / 180)) * (this.speed * event.delta / 1000));
+        // figure out velocity based on heading. cap it at (this.speedcap) pixels of movement since last frame
+        var xVelocity = Math.max(-this.speedcap, Math.min(this.speedcap, Math.sin(this.heading * (Math.PI / 180)) * (this.speed * event.delta / 1000)));
+        var yVelocity = -Math.max(-this.speedcap, Math.min(this.speedcap, Math.cos(this.heading * (Math.PI / 180)) * (this.speed * event.delta / 1000)));
         var generalVelocity = (this.speed * event.delta / 1000);
         // Adjust new position based on velocity
         var newX = oldX + xVelocity;
@@ -437,8 +449,7 @@ var Vehicle = (function () {
             case 1 /* MovingForward */:
                 {
                     // in case something got screwed up (dropped frames, etc) set heading to desiredHeading;
-                    if (this.heading !== this.desiredHeading)
-                        console.log('heading issue. was ' + this.heading + ' should be ' + this.desiredHeading);
+                    //if(this.heading !== this.desiredHeading) console.log('heading issue. was ' + this.heading + ' should be ' + this.desiredHeading);
                     this.heading = this.desiredHeading;
                     // if not in my lane, move towards the optimal position for my heading
                     if (headingEorW(this.heading)) {
@@ -447,8 +458,6 @@ var Vehicle = (function () {
                             optimalY = 24 + (newSqY * 32);
                         if (this.heading === 270)
                             optimalY = 8 + (newSqY * 32);
-                        if (newY !== optimalY)
-                            console.log('Making Y adjustment');
                         if (newY < optimalY)
                             newY = newY + Math.min(generalVelocity, optimalY - newY);
                         if (newY > optimalY)
@@ -460,8 +469,6 @@ var Vehicle = (function () {
                             optimalX = 24 + (newSqX * 32);
                         if (this.heading === 180)
                             optimalX = 8 + (newSqX * 32);
-                        if (newX !== optimalX)
-                            console.log('Making X adjustment');
                         if (newX < optimalX)
                             newX = newX + Math.min(generalVelocity, optimalX - newX);
                         if (newX > optimalX)
@@ -476,53 +483,15 @@ var Vehicle = (function () {
                 }
             case 2 /* TurningLeft */:
                 {
-                    this.heading = this.turnTowardsHeading(this.heading, this.desiredHeading, 6 * this.speed * (event.delta / 1000), -1);
+                    if (this.leftTurnInProgress || this.allowLeftTurn(newX, newY)) {
+                        this.leftTurnInProgress = true;
+                        this.heading = this.turnTowardsHeading(this.heading, this.desiredHeading, 6 * this.speed * (event.delta / 1000), -1);
+                    }
                     break;
                 }
         }
-        //
-        //
-        //
-        //
-        //
-        //if(this.desiredHeading === 0) newY = oldY - velocity;
-        //if(this.desiredHeading === 90) newX = oldX + velocity;
-        //if(this.desiredHeading === 180) newY = oldY + velocity;
-        //if(this.desiredHeading === 270) newX = oldX - velocity;
-        //
-        //
-        //
-        //var farEnoughIntoSquareToTurn = false;
-        //if(this.heading === 0) {
-        //    if(this.desiredHeading === 90) {
-        //
-        //    }
-        //    farEnoughIntoSquareToTurn = newY % 32 < 8;
-        //}
-        //
-        //if((this.state === VehicleStates.MovingForward || this.state === VehicleStates.WaitingAtIntersection)
-        //        || farEnoughIntoSquareToTurn)
-        //{
-        //    if (this.desiredHeading === 90 || this.desiredHeading === 270)
-        //    {
-        //        // moving east or west. adjust towards optimal y Height
-        //        var optimalY = newSqY * 32;
-        //        if (newY > optimalY) {
-        //            newY -= velocity;
-        //            if (newY < velocity) {
-        //                newY = optimalY
-        //            }
-        //        }
-        //        if (newY < optimalY) {
-        //            newY += velocity;
-        //            if (newY > optimalY) {
-        //                newY = optimalY;
-        //            }
-        //        }
-        //    }
-        //}
         if (enteredNewSquare) {
-            this.decideNextAction(oldSqX, oldSqY, newSqX, newSqY);
+            this.decideNextAction(oldSqX, oldSqY, newSqX, newSqY, newX, newY);
         }
         this.x = newX;
         this.y = newY;
@@ -530,20 +499,6 @@ var Vehicle = (function () {
         this.rect.x = Math.floor(this.x) + 120;
         this.rect.y = Math.floor(this.y);
         this.rect.rotation = this.heading;
-        //
-        //this.highlight.x = (newSqX * 32) + 120;
-        //this.highlight.y = newSqY * 32;
-        //
-        //var xAdjust = Math.abs(this.heading - 180);
-        //this.rect.x += 8 + ((xAdjust / 180) * 16);
-        //
-        //var yAdjust = Math.abs(this.heading - 270);
-        //if(yAdjust < -180) yAdjust += 360;
-        //this.rect.y += 8 + ((yAdjust / 180) * 16);
-        //if(this.heading === 0) this.rect.x += 24;
-        //if(this.heading === 180) this.rect.x += 8;
-        //if(this.heading === 90) this.rect.y += 24;
-        //if(this.heading === 270) this.rect.y += 8;
     };
     Vehicle.prototype.unloadContent = function (stage) {
     };
@@ -585,8 +540,8 @@ var World = (function (_super) {
         this.scoreboard = new ScoreBoard();
         this.grid = new GridOverlay('#999', 32, 1024, 640, 120, 0);
         this.pushObject(this.map);
-        this.pushObject(new Vehicle(28, 12, 'blue', 0, 121, 10, 4, this.map));
-        //this.pushObject(new Vehicle(28, 12, 'red', 90, 4, 10, 1, this.map))
+        this.pushObject(new Vehicle(28, 12, 'blue', 0, 30, 10, 4, this.map));
+        this.pushObject(new Vehicle(28, 12, 'red', 180, 30, 10, 2, this.map));
         //this.pushObject(new Vehicle(28, 12, 'purple', 180, 4, 2, 5, this.map))
         //this.pushObject(new Vehicle(28, 12, 'yellow', 270, 4, 29, 1, this.map))
         this.pushObject(this.scoreboard);

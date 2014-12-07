@@ -95,12 +95,15 @@ declare class Vehicle implements IGameObject {
     rect: createjs.Shape;
     state: VehicleStates;
     desiredHeading: number;
+    speedcap: number;
+    allowLeftTurn: (x: number, y: number) => boolean;
+    leftTurnInProgress: boolean;
     constructor(length: number, width: number, color: string, heading: number, speed: number, startX: number, startY: number, mapData: BgMap);
     init(): void;
     preload(): IAssetPath[];
     loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
     turnTowardsHeading(heading: number, desiredHeading: number, maxAbsTurnAngle: number, turnDirection: number): number;
-    decideNextAction(oldSqX: number, oldSqY: number, newSqX: number, newSqY: number): void;
+    decideNextAction(oldSqX: number, oldSqY: number, newSqX: number, newSqY: number, newX: number, newY: number): void;
     update(event: createjs.TickerEvent): void;
     unloadContent(stage: createjs.Stage): void;
 }
