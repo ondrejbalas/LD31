@@ -110,7 +110,7 @@ class Vehicle implements IGameObject {
             if(this.desiredHeading === 270 && sqValidN) this.desiredHeading = 0;
             if(this.desiredHeading === 270 && sqValidS) this.desiredHeading = 180;
 
-            if(wasHeading + 90 === this.desiredHeading) {
+            if(wasHeading + 90 === this.desiredHeading || wasHeading === 270 && this.desiredHeading === 0) {
                 this.state = VehicleStates.TurningRight;
                 console.log('turning right!')
             }

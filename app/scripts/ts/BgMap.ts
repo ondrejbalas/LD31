@@ -6,9 +6,10 @@ interface ISquare {
 class BgMap implements IGameObject {
     bg:createjs.Bitmap;
     squares:number[][] = [[]];
+    private validSquares:ISquare[];
 
     constructor(public drawValidSquares:boolean) {
-        var validSquares:ISquare[] = [
+        this.validSquares = [
             { x: 2, y: 5},
             { x: 3, y: 5},
             { x: 4, y: 5},
@@ -140,7 +141,7 @@ class BgMap implements IGameObject {
             }
         }
 
-        _.each(validSquares, (sq) => {
+        _.each(this.validSquares, (sq) => {
             this.squares[sq.x][sq.y] = 1;
         });
     }
@@ -158,6 +159,17 @@ class BgMap implements IGameObject {
         this.bg.x = 120;
 
         stage.addChild(this.bg);
+
+        if(this.drawValidSquares) {
+            var shape = new createjs.Shape();
+            shape.x = 120;
+            shape.graphics.beginFill('#FF0000');
+            _.each(this.validSquares, (sq) => {
+                shape.graphics.drawRect(4 + sq.x * 32, 4 + sq.y * 32, 24, 24);
+                console.log('drawing rect at [' + sq.x + ',' + sq.y + '] with dimensions 24x24');
+            });
+            stage.addChild(shape);
+        }
     }
 
     update(event:createjs.TickerEvent):void {

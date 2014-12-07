@@ -20,6 +20,7 @@ declare class BgMap implements IGameObject {
     drawValidSquares: boolean;
     bg: createjs.Bitmap;
     squares: number[][];
+    private validSquares;
     constructor(drawValidSquares: boolean);
     init(): void;
     preload(): IAssetPath[];

@@ -33,7 +33,7 @@ var BgMap = (function () {
         var _this = this;
         this.drawValidSquares = drawValidSquares;
         this.squares = [[]];
-        var validSquares = [
+        this.validSquares = [
             { x: 2, y: 5 },
             { x: 3, y: 5 },
             { x: 4, y: 5 },
@@ -163,7 +163,7 @@ var BgMap = (function () {
                 this.squares[x][y] = 0;
             }
         }
-        _.each(validSquares, function (sq) {
+        _.each(this.validSquares, function (sq) {
             _this.squares[sq.x][sq.y] = 1;
         });
     }
@@ -176,6 +176,16 @@ var BgMap = (function () {
         this.bg = new createjs.Bitmap(lib.getImage('mapbg'));
         this.bg.x = 120;
         stage.addChild(this.bg);
+        if (this.drawValidSquares) {
+            var shape = new createjs.Shape();
+            shape.x = 120;
+            shape.graphics.beginFill('#FF0000');
+            _.each(this.validSquares, function (sq) {
+                shape.graphics.drawRect(4 + sq.x * 32, 4 + sq.y * 32, 24, 24);
+                console.log('drawing rect at [' + sq.x + ',' + sq.y + '] with dimensions 24x24');
+            });
+            stage.addChild(shape);
+        }
     };
     BgMap.prototype.update = function (event) {
     };
@@ -389,7 +399,7 @@ var Vehicle = (function () {
                 this.desiredHeading = 0;
             if (this.desiredHeading === 270 && sqValidS)
                 this.desiredHeading = 180;
-            if (wasHeading + 90 === this.desiredHeading) {
+            if (wasHeading + 90 === this.desiredHeading || wasHeading === 270 && this.desiredHeading === 0) {
                 this.state = 3 /* TurningRight */;
                 console.log('turning right!');
             }

@@ -32,7 +32,7 @@ class World extends GameObjectContainer {
         console.log('world:init enter');
         createjs.Ticker.setFPS(60);
 
-        this.map = new BgMap(true);
+        this.map = new BgMap(false);
         this.scoreboard = new ScoreBoard();
         this.grid = new GridOverlay('#999', 32, 1024, 640, 120, 0);
 
