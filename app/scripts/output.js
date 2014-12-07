@@ -4,12 +4,14 @@
 var AssetLibrary = (function () {
     function AssetLibrary(basePath) {
         this.basePath = basePath;
+        this.requestedAssets = [];
     }
     AssetLibrary.prototype.getImage = function (id) {
         return this.loadQueue.getResult(id);
     };
     AssetLibrary.prototype.add = function (asset) {
         console.log('asset requested: ' + asset.id);
+        this.requestedAssets.push(asset);
     };
     AssetLibrary.prototype.addAll = function (assets) {
         var _this = this;
@@ -21,14 +23,29 @@ var AssetLibrary = (function () {
         console.log('assetLibrary:preload enter');
         this.loadQueue = new createjs.LoadQueue();
         this.loadQueue.on('complete', callback, this);
-        //this.loadQueue.loadFile({id:'bgimg', src:'images/map-bg.png' });
-        this.loadQueue.loadManifest([
-            { id: 'bgimg', src: 'images/map-bg.png' },
-            { id: 'scorebg', src: 'images/scoreboard-bg.png' }
-        ]);
+        this.loadQueue.loadManifest(this.requestedAssets, true, 'images/');
         console.log('assetLibrary:preload exit');
     };
     return AssetLibrary;
+})();
+var BgMap = (function () {
+    function BgMap() {
+    }
+    BgMap.prototype.init = function () {
+    };
+    BgMap.prototype.preload = function () {
+        return [{ id: 'mapbg', src: 'map-bg.png' }];
+    };
+    BgMap.prototype.loadContent = function (stage, lib) {
+        this.bg = new createjs.Bitmap(lib.getImage('mapbg'));
+        this.bg.x = 120;
+        stage.addChild(this.bg);
+    };
+    BgMap.prototype.update = function (event) {
+    };
+    BgMap.prototype.unloadContent = function (stage) {
+    };
+    return BgMap;
 })();
 ///<reference path="../../../typings/easeljs/easeljs.d.ts" />
 var GameObjectContainer = (function () {
@@ -214,8 +231,10 @@ var World = (function (_super) {
     World.prototype.init = function () {
         console.log('world:init enter');
         createjs.Ticker.setFPS(60);
+        this.map = new BgMap();
         this.scoreboard = new ScoreBoard();
         this.grid = new GridOverlay('#999', 32, 1024, 640, 120, 0);
+        this.pushObject(this.map);
         this.pushObject(new Vehicle(28, 12, 'blue', 0, 20, 10, 17));
         this.pushObject(new Vehicle(28, 12, 'red', 90, 25, 10, 1));
         this.pushObject(new Vehicle(28, 12, 'purple', 180, 30, 2, 5));
@@ -227,16 +246,10 @@ var World = (function (_super) {
     };
     World.prototype.preload = function () {
         var paths = _super.prototype.preload.call(this);
-        paths.push({ id: 'bgimg', src: 'map-bg.png' });
         return paths;
     };
     World.prototype.loadContent = function (stage, lib) {
-        console.log('world:loadContent enter');
-        this.bgimg = new createjs.Bitmap(lib.getImage('bgimg'));
-        this.bgimg.x = 120;
-        stage.addChild(this.bgimg);
         _super.prototype.loadContent.call(this, stage, lib);
-        console.log('world:loadContent exit');
     };
     World.prototype.update = function (event) {
         _super.prototype.update.call(this, event);

@@ -5,11 +5,20 @@
 declare class AssetLibrary {
     basePath: string;
     loadQueue: createjs.LoadQueue;
+    requestedAssets: IAssetPath[];
     constructor(basePath: string);
     getImage(id: string): HTMLImageElement;
     add(asset: IAssetPath): void;
     addAll(assets: IAssetPath[]): void;
     preload(callback: () => void): void;
+}
+declare class BgMap implements IGameObject {
+    bg: createjs.Bitmap;
+    init(): void;
+    preload(): IAssetPath[];
+    loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
+    update(event: createjs.TickerEvent): void;
+    unloadContent(stage: createjs.Stage): void;
 }
 declare class GameObjectContainer implements IGameObject {
     gameObjects: IGameObject[];
@@ -79,6 +88,7 @@ declare class World extends GameObjectContainer {
     stage: createjs.Stage;
     level: number;
     scoreboard: ScoreBoard;
+    map: BgMap;
     grid: GridOverlay;
     bgimg: createjs.Bitmap;
     lib: AssetLibrary;

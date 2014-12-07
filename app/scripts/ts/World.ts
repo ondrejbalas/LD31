@@ -5,6 +5,7 @@
 class World extends GameObjectContainer {
     level:number;
     scoreboard:ScoreBoard;
+    map:BgMap;
     grid:GridOverlay;
     bgimg:createjs.Bitmap;
 
@@ -31,9 +32,11 @@ class World extends GameObjectContainer {
         console.log('world:init enter');
         createjs.Ticker.setFPS(60);
 
+        this.map = new BgMap();
         this.scoreboard = new ScoreBoard();
         this.grid = new GridOverlay('#999', 32, 1024, 640, 120, 0);
 
+        this.pushObject(this.map);
         this.pushObject(new Vehicle(28, 12, 'blue', 0, 20, 10, 17))
         this.pushObject(new Vehicle(28, 12, 'red', 90, 25, 10, 1))
         this.pushObject(new Vehicle(28, 12, 'purple', 180, 30, 2, 5))
@@ -48,20 +51,11 @@ class World extends GameObjectContainer {
 
     preload():IAssetPath[] {
         var paths = super.preload();
-        paths.push({id: 'bgimg', src: 'map-bg.png'});
         return paths;
     }
 
     loadContent(stage:createjs.Stage, lib:AssetLibrary):void {
-        console.log('world:loadContent enter')
-
-        this.bgimg = new createjs.Bitmap(lib.getImage('bgimg'));
-        this.bgimg.x = 120;
-
-        stage.addChild(this.bgimg);
-
         super.loadContent(stage, lib);
-        console.log('world:loadContent exit')
     }
 
     update(event:createjs.TickerEvent):void {

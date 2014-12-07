@@ -4,6 +4,7 @@
 
 class AssetLibrary {
     loadQueue:createjs.LoadQueue;
+    requestedAssets:IAssetPath[] = [];
 
     constructor(public basePath: string) {
 
@@ -15,6 +16,7 @@ class AssetLibrary {
 
     add(asset:IAssetPath):void {
         console.log('asset requested: ' + asset.id);
+        this.requestedAssets.push(asset);
     }
 
     addAll(assets:IAssetPath[]):void {
@@ -27,11 +29,7 @@ class AssetLibrary {
         console.log('assetLibrary:preload enter');
         this.loadQueue = new createjs.LoadQueue();
         this.loadQueue.on('complete', callback, this);
-        //this.loadQueue.loadFile({id:'bgimg', src:'images/map-bg.png' });
-        this.loadQueue.loadManifest([
-            {id:'bgimg', src:'images/map-bg.png' },
-            {id:'scorebg', src:'images/scoreboard-bg.png' }
-        ]);
+        this.loadQueue.loadManifest(this.requestedAssets, true, 'images/');
         console.log('assetLibrary:preload exit');
     }
 }
