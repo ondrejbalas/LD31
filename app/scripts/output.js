@@ -95,6 +95,8 @@ var ScoreBoard = (function () {
         return [{ id: 'scorebg', src: 'scoreboard-bg.png' }];
     };
     ScoreBoard.prototype.loadContent = function (stage, lib) {
+        this.bg = new createjs.Bitmap(lib.getImage('scorebg'));
+        stage.addChild(this.bg);
     };
     ScoreBoard.prototype.update = function (event) {
     };
@@ -171,10 +173,12 @@ var World = (function (_super) {
     World.prototype.init = function () {
         console.log('world:init enter');
         createjs.Ticker.setFPS(60);
+        this.scoreboard = new ScoreBoard();
         this.pushObject(new Vehicle(40, 22, 'blue', 0, 10));
         this.pushObject(new Vehicle(40, 22, 'red', 90, 15));
         this.pushObject(new Vehicle(40, 22, 'purple', 180, 20));
         this.pushObject(new Vehicle(40, 22, 'yellow', 270, 25));
+        this.pushObject(this.scoreboard);
         _super.prototype.init.call(this);
         console.log('world:init exit');
     };
@@ -185,7 +189,7 @@ var World = (function (_super) {
     };
     World.prototype.loadContent = function (stage, lib) {
         console.log('world:loadContent enter');
-        this.bgimg = new createjs.Bitmap(this.lib.getImage('bgimg'));
+        this.bgimg = new createjs.Bitmap(lib.getImage('bgimg'));
         this.bgimg.x = 140;
         stage.addChild(this.bgimg);
         _super.prototype.loadContent.call(this, stage, lib);

@@ -35,7 +35,7 @@ interface IGameObject {
     unloadContent(stage: createjs.Stage): void;
 }
 declare class ScoreBoard implements IGameObject {
-    bg: createjs.Shape;
+    bg: createjs.Bitmap;
     init(): void;
     preload(): IAssetPath[];
     loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
@@ -61,6 +61,7 @@ declare class Vehicle implements IGameObject {
 declare class World extends GameObjectContainer {
     stage: createjs.Stage;
     level: number;
+    scoreboard: ScoreBoard;
     bgimg: createjs.Bitmap;
     lib: AssetLibrary;
     constructor(stage: createjs.Stage);

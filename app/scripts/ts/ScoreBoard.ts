@@ -1,5 +1,5 @@
 class ScoreBoard implements IGameObject {
-    bg:createjs.Shape;
+    bg:createjs.Bitmap;
 
     init():void {
     }
@@ -9,6 +9,9 @@ class ScoreBoard implements IGameObject {
     }
 
     loadContent(stage:createjs.Stage, lib:AssetLibrary):void {
+        this.bg = new createjs.Bitmap(lib.getImage('scorebg'));
+
+        stage.addChild(this.bg);
     }
 
     update(event:createjs.TickerEvent):void {
