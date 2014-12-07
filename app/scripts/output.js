@@ -34,128 +34,135 @@ var BgMap = (function () {
         this.drawValidSquares = drawValidSquares;
         this.squares = [[]];
         this.validSquares = [
-            { x: 2, y: 5 },
-            { x: 3, y: 5 },
-            { x: 4, y: 5 },
-            { x: 5, y: 5 },
-            { x: 6, y: 5 },
-            { x: 7, y: 5 },
-            { x: 8, y: 5 },
-            { x: 9, y: 5 },
-            { x: 10, y: 5 },
-            { x: 11, y: 5 },
-            { x: 12, y: 5 },
-            { x: 13, y: 5 },
-            { x: 14, y: 5 },
-            { x: 15, y: 5 },
-            { x: 16, y: 5 },
-            { x: 2, y: 6 },
-            { x: 2, y: 7 },
-            { x: 2, y: 8 },
-            { x: 2, y: 9 },
-            { x: 2, y: 10 },
-            { x: 2, y: 11 },
-            { x: 2, y: 12 },
-            { x: 2, y: 13 },
-            { x: 2, y: 14 },
-            { x: 2, y: 15 },
-            { x: 2, y: 16 },
-            { x: 2, y: 17 },
-            { x: 3, y: 17 },
-            { x: 4, y: 17 },
-            { x: 5, y: 17 },
-            { x: 6, y: 17 },
-            { x: 7, y: 17 },
-            { x: 8, y: 17 },
-            { x: 9, y: 17 },
-            { x: 10, y: 17 },
-            { x: 10, y: 16 },
-            { x: 10, y: 15 },
-            { x: 10, y: 14 },
-            { x: 10, y: 13 },
-            { x: 10, y: 12 },
-            { x: 10, y: 11 },
-            { x: 10, y: 10 },
-            { x: 10, y: 9 },
-            { x: 10, y: 8 },
-            { x: 10, y: 7 },
-            { x: 10, y: 6 },
-            { x: 10, y: 4 },
-            { x: 10, y: 3 },
-            { x: 10, y: 2 },
-            { x: 10, y: 1 },
-            { x: 11, y: 1 },
-            { x: 12, y: 1 },
-            { x: 13, y: 1 },
-            { x: 14, y: 1 },
-            { x: 15, y: 1 },
-            { x: 16, y: 1 },
-            { x: 17, y: 1 },
-            { x: 18, y: 1 },
-            { x: 19, y: 1 },
-            { x: 20, y: 1 },
-            { x: 21, y: 1 },
-            { x: 22, y: 1 },
-            { x: 23, y: 1 },
-            { x: 24, y: 1 },
-            { x: 25, y: 1 },
-            { x: 26, y: 1 },
-            { x: 27, y: 1 },
-            { x: 28, y: 1 },
-            { x: 29, y: 1 },
-            { x: 29, y: 2 },
-            { x: 29, y: 3 },
-            { x: 29, y: 4 },
-            { x: 29, y: 5 },
-            { x: 29, y: 6 },
-            { x: 29, y: 7 },
-            { x: 28, y: 7 },
-            { x: 27, y: 7 },
-            { x: 26, y: 7 },
-            { x: 25, y: 7 },
-            { x: 24, y: 7 },
-            { x: 23, y: 7 },
-            { x: 22, y: 7 },
-            { x: 22, y: 8 },
-            { x: 22, y: 9 },
-            { x: 22, y: 10 },
-            { x: 22, y: 11 },
-            { x: 22, y: 12 },
-            { x: 22, y: 13 },
-            { x: 22, y: 14 },
-            { x: 22, y: 15 },
-            { x: 22, y: 16 },
-            { x: 22, y: 17 },
-            { x: 23, y: 17 },
-            { x: 24, y: 17 },
-            { x: 25, y: 17 },
-            { x: 26, y: 17 },
-            { x: 27, y: 17 },
-            { x: 28, y: 17 },
-            { x: 29, y: 17 },
-            { x: 29, y: 16 },
-            { x: 29, y: 15 },
-            { x: 29, y: 14 },
-            { x: 29, y: 13 },
-            { x: 29, y: 12 },
-            { x: 29, y: 11 },
-            { x: 28, y: 11 },
-            { x: 27, y: 11 },
-            { x: 26, y: 11 },
-            { x: 25, y: 11 },
-            { x: 24, y: 11 },
-            { x: 23, y: 11 },
-            { x: 21, y: 11 },
-            { x: 20, y: 11 },
-            { x: 19, y: 11 },
-            { x: 18, y: 11 },
-            { x: 17, y: 11 },
-            { x: 16, y: 11 },
-            { x: 16, y: 10 },
-            { x: 16, y: 9 },
-            { x: 16, y: 8 },
-            { x: 16, y: 7 },
-            { x: 16, y: 6 }
+            { x: 2, y: 5, t: 1 },
+            { x: 3, y: 5, t: 1 },
+            { x: 4, y: 5, t: 1 },
+            { x: 5, y: 5, t: 1 },
+            { x: 6, y: 5, t: 1 },
+            { x: 7, y: 5, t: 1 },
+            { x: 8, y: 5, t: 1 },
+            { x: 9, y: 5, t: 1 },
+            { x: 10, y: 5, t: 1 },
+            { x: 11, y: 5, t: 1 },
+            { x: 12, y: 5, t: 1 },
+            { x: 13, y: 5, t: 1 },
+            { x: 14, y: 5, t: 1 },
+            { x: 15, y: 5, t: 1 },
+            { x: 16, y: 5, t: 1 },
+            { x: 2, y: 6, t: 1 },
+            { x: 2, y: 7, t: 1 },
+            { x: 2, y: 8, t: 1 },
+            { x: 2, y: 9, t: 1 },
+            { x: 2, y: 10, t: 1 },
+            { x: 2, y: 11, t: 1 },
+            { x: 2, y: 12, t: 1 },
+            { x: 2, y: 13, t: 1 },
+            { x: 2, y: 14, t: 1 },
+            { x: 2, y: 15, t: 1 },
+            { x: 2, y: 16, t: 1 },
+            { x: 2, y: 17, t: 1 },
+            { x: 3, y: 17, t: 1 },
+            { x: 4, y: 17, t: 1 },
+            { x: 5, y: 17, t: 1 },
+            { x: 6, y: 17, t: 1 },
+            { x: 7, y: 17, t: 1 },
+            { x: 8, y: 17, t: 1 },
+            { x: 9, y: 17, t: 1 },
+            { x: 10, y: 17, t: 1 },
+            { x: 10, y: 16, t: 1 },
+            { x: 10, y: 15, t: 1 },
+            { x: 10, y: 14, t: 1 },
+            { x: 10, y: 13, t: 1 },
+            { x: 10, y: 12, t: 1 },
+            { x: 10, y: 11, t: 1 },
+            { x: 10, y: 10, t: 1 },
+            { x: 10, y: 9, t: 1 },
+            { x: 10, y: 8, t: 1 },
+            { x: 10, y: 7, t: 1 },
+            { x: 10, y: 6, t: 1 },
+            { x: 10, y: 4, t: 1 },
+            { x: 10, y: 3, t: 1 },
+            { x: 10, y: 2, t: 1 },
+            { x: 10, y: 1, t: 1 },
+            { x: 11, y: 1, t: 1 },
+            { x: 12, y: 1, t: 1 },
+            { x: 13, y: 1, t: 1 },
+            { x: 14, y: 1, t: 1 },
+            { x: 15, y: 1, t: 1 },
+            { x: 16, y: 1, t: 1 },
+            { x: 17, y: 1, t: 1 },
+            { x: 18, y: 1, t: 1 },
+            { x: 19, y: 1, t: 1 },
+            { x: 20, y: 1, t: 1 },
+            { x: 21, y: 1, t: 1 },
+            { x: 22, y: 1, t: 1 },
+            { x: 23, y: 1, t: 1 },
+            { x: 24, y: 1, t: 1 },
+            { x: 25, y: 1, t: 1 },
+            { x: 26, y: 1, t: 1 },
+            { x: 27, y: 1, t: 1 },
+            { x: 28, y: 1, t: 1 },
+            { x: 29, y: 1, t: 1 },
+            { x: 29, y: 2, t: 1 },
+            { x: 29, y: 3, t: 1 },
+            { x: 29, y: 4, t: 1 },
+            { x: 29, y: 5, t: 1 },
+            { x: 29, y: 6, t: 1 },
+            { x: 29, y: 7, t: 1 },
+            { x: 28, y: 7, t: 1 },
+            { x: 27, y: 7, t: 1 },
+            { x: 26, y: 7, t: 1 },
+            { x: 25, y: 7, t: 1 },
+            { x: 24, y: 7, t: 1 },
+            { x: 23, y: 7, t: 1 },
+            { x: 22, y: 7, t: 1 },
+            { x: 22, y: 8, t: 1 },
+            { x: 22, y: 9, t: 1 },
+            { x: 22, y: 10, t: 1 },
+            { x: 22, y: 11, t: 1 },
+            { x: 22, y: 12, t: 1 },
+            { x: 22, y: 13, t: 1 },
+            { x: 22, y: 14, t: 1 },
+            { x: 22, y: 15, t: 1 },
+            { x: 22, y: 16, t: 1 },
+            { x: 22, y: 17, t: 1 },
+            { x: 23, y: 17, t: 1 },
+            { x: 24, y: 17, t: 1 },
+            { x: 25, y: 17, t: 1 },
+            { x: 26, y: 17, t: 1 },
+            { x: 27, y: 17, t: 1 },
+            { x: 28, y: 17, t: 1 },
+            { x: 29, y: 17, t: 1 },
+            { x: 29, y: 16, t: 1 },
+            { x: 29, y: 15, t: 1 },
+            { x: 29, y: 14, t: 1 },
+            { x: 29, y: 13, t: 1 },
+            { x: 29, y: 12, t: 1 },
+            { x: 29, y: 11, t: 1 },
+            { x: 28, y: 11, t: 1 },
+            { x: 27, y: 11, t: 1 },
+            { x: 26, y: 11, t: 1 },
+            { x: 25, y: 11, t: 1 },
+            { x: 24, y: 11, t: 1 },
+            { x: 23, y: 11, t: 1 },
+            { x: 21, y: 11, t: 1 },
+            { x: 20, y: 11, t: 1 },
+            { x: 19, y: 11, t: 1 },
+            { x: 18, y: 11, t: 1 },
+            { x: 17, y: 11, t: 1 },
+            { x: 16, y: 11, t: 1 },
+            { x: 16, y: 10, t: 1 },
+            { x: 16, y: 9, t: 1 },
+            { x: 16, y: 8, t: 1 },
+            { x: 16, y: 7, t: 1 },
+            { x: 16, y: 6, t: 1 },
+            { x: 10, y: 0, t: 2 },
+            { x: 30, y: 1, t: 2 },
+            { x: 31, y: 1, t: 2 },
+            { x: 29, y: 18, t: 2 },
+            { x: 29, y: 19, t: 2 },
+            { x: 10, y: 18, t: 2 },
+            { x: 10, y: 19, t: 2 },
         ];
         for (var x = 0; x < 32; x++) {
             this.squares[x] = [];
@@ -164,7 +171,7 @@ var BgMap = (function () {
             }
         }
         _.each(this.validSquares, function (sq) {
-            _this.squares[sq.x][sq.y] = 1;
+            _this.squares[sq.x][sq.y] = sq.t;
         });
     }
     BgMap.prototype.init = function () {
@@ -179,8 +186,11 @@ var BgMap = (function () {
         if (this.drawValidSquares) {
             var shape = new createjs.Shape();
             shape.x = 120;
-            shape.graphics.beginFill('#FF0000');
             _.each(this.validSquares, function (sq) {
+                if (sq.t === 1)
+                    shape.graphics.beginFill('#FF0000');
+                if (sq.t === 2)
+                    shape.graphics.beginFill('#FFFF00');
                 shape.graphics.drawRect(4 + sq.x * 32, 4 + sq.y * 32, 24, 24);
                 console.log('drawing rect at [' + sq.x + ',' + sq.y + '] with dimensions 24x24');
             });
@@ -324,6 +334,7 @@ var Vehicle = (function () {
         this.startX = startX;
         this.startY = startY;
         this.mapData = mapData;
+        this.hasEnteredMap = false;
         this.leftTurnInProgress = false;
         this.x = 16 + startX * 32;
         this.y = 16 + startY * 32;
@@ -336,6 +347,9 @@ var Vehicle = (function () {
         //this.heading = Math.floor(Math.random() * 360);
         //this.speed = 5 + Math.floor(Math.random() * 5);
         this.speedcap = 10;
+        var adjustments = this.calculateLaneAdjustments(this.x, this.y, this.startX, this.startY);
+        this.x = this.x + adjustments.xAdjust;
+        this.y = this.y + adjustments.yAdjust;
     };
     Vehicle.prototype.preload = function () {
         return [];
@@ -380,6 +394,16 @@ var Vehicle = (function () {
         var sqValidW = this.desiredHeading === 90 ? 0 : this.mapData.squares[newSqX - 1][newSqY];
         var sqValidN = this.desiredHeading === 180 ? 0 : this.mapData.squares[newSqX][newSqY - 1];
         var sqValidE = this.desiredHeading === 270 ? 0 : this.mapData.squares[newSqX + 1][newSqY];
+        if (this.hasEnteredMap) {
+            if (sqValidN !== 1)
+                sqValidN = 0;
+            if (sqValidE !== 1)
+                sqValidE = 0;
+            if (sqValidS !== 1)
+                sqValidS = 0;
+            if (sqValidW !== 1)
+                sqValidW = 0;
+        }
         if ((this.desiredHeading === 0 && sqValidN) || (this.desiredHeading === 90 && sqValidE) || (this.desiredHeading === 180 && sqValidS) || (this.desiredHeading === 270 && sqValidW)) {
             // Going straight
             //console.log('going straight!')
@@ -424,6 +448,32 @@ var Vehicle = (function () {
             }
         }
     };
+    Vehicle.prototype.calculateLaneAdjustments = function (newX, newY, newSqX, newSqY) {
+        var xAdjust = 0, yAdjust = 0;
+        var headingEorW = function (heading) {
+            return heading === 90 || heading === 270;
+        };
+        var headingNorS = function (heading) {
+            return heading === 0 || heading === 180;
+        };
+        if (headingEorW(this.heading)) {
+            var optimalY = 0;
+            if (this.heading === 90)
+                optimalY = (19 + this.width) + (newSqY * 32);
+            if (this.heading === 270)
+                optimalY = (13 - this.width) + (newSqY * 32);
+            yAdjust = optimalY - newY;
+        }
+        if (headingNorS(this.heading)) {
+            var optimalX;
+            if (this.heading === 0)
+                optimalX = (19 + this.width) + (newSqX * 32);
+            if (this.heading === 180)
+                optimalX = (13 - this.width) + (newSqX * 32);
+            xAdjust = optimalX - newX;
+        }
+        return { xAdjust: xAdjust, yAdjust: yAdjust };
+    };
     Vehicle.prototype.update = function (event) {
         // remember where i was last tick
         var oldX = this.x;
@@ -442,12 +492,6 @@ var Vehicle = (function () {
         var newSqY = Math.floor(newY / 32);
         // set some vars that I'll need later
         var enteredNewSquare = oldSqX !== newSqX || oldSqY !== newSqY;
-        var headingEorW = function (heading) {
-            return heading === 90 || heading === 270;
-        };
-        var headingNorS = function (heading) {
-            return heading === 0 || heading === 180;
-        };
         switch (this.state) {
             case 1 /* MovingForward */:
                 {
@@ -455,28 +499,15 @@ var Vehicle = (function () {
                     //if(this.heading !== this.desiredHeading) console.log('heading issue. was ' + this.heading + ' should be ' + this.desiredHeading);
                     this.heading = this.desiredHeading;
                     // if not in my lane, move towards the optimal position for my heading
-                    if (headingEorW(this.heading)) {
-                        var optimalY = 0;
-                        if (this.heading === 90)
-                            optimalY = (19 + this.width) + (newSqY * 32);
-                        if (this.heading === 270)
-                            optimalY = (13 - this.width) + (newSqY * 32); // 12 = 2, 10 = 4
-                        if (newY < optimalY)
-                            newY = newY + Math.min(generalVelocity, optimalY - newY);
-                        if (newY > optimalY)
-                            newY = newY - Math.min(generalVelocity, newY - optimalY);
-                    }
-                    if (headingNorS(this.heading)) {
-                        var optimalX;
-                        if (this.heading === 0)
-                            optimalX = (19 + this.width) + (newSqX * 32);
-                        if (this.heading === 180)
-                            optimalX = (13 - this.width) + (newSqX * 32);
-                        if (newX < optimalX)
-                            newX = newX + Math.min(generalVelocity, optimalX - newX);
-                        if (newX > optimalX)
-                            newX = newX - Math.min(generalVelocity, newX - optimalX);
-                    }
+                    var adjustments = this.calculateLaneAdjustments(newX, newY, newSqX, newSqY);
+                    if (adjustments.yAdjust < 0)
+                        newY = newY - Math.min(generalVelocity, Math.abs(adjustments.yAdjust));
+                    if (adjustments.yAdjust > 0)
+                        newY = newY + Math.min(generalVelocity, Math.abs(adjustments.yAdjust));
+                    if (adjustments.xAdjust < 0)
+                        newX = newX - Math.min(generalVelocity, Math.abs(adjustments.xAdjust));
+                    if (adjustments.xAdjust > 0)
+                        newX = newX + Math.min(generalVelocity, Math.abs(adjustments.xAdjust));
                     break;
                 }
             case 3 /* TurningRight */:
@@ -494,6 +525,8 @@ var Vehicle = (function () {
                 }
         }
         if (enteredNewSquare) {
+            if (this.mapData.squares[newSqX][newSqY] === 1)
+                this.hasEnteredMap = true;
             this.decideNextAction(oldSqX, oldSqY, newSqX, newSqY, newX, newY);
         }
         this.x = newX;
@@ -524,7 +557,7 @@ var VehicleFactory = (function (_super) {
     VehicleFactory.prototype.init = function () {
         //this.pushObject(new Vehicle(28, 12, 'sportscar', 0, 100, 10, 4, this.mapData))
         //this.pushObject(new Vehicle(28, 12, 'minivan', 180, 75, 10, 2, this.mapData))
-        this.pushObject(new Vehicle(28, 12, 'truck', 180, 50, 10, 2, this.mapData));
+        //this.pushObject(new Vehicle(28, 12, 'truck', 180, 50, 10, 2, this.mapData))
         //this.pushObject(new Vehicle(28, 12, 'sportscar', 180, 50, 2, 15, this.mapData))
         //this.pushObject(new Vehicle(28, 12, 'sportscar', 180, 100, 2, 10, this.mapData))
         _super.prototype.init.call(this);
@@ -549,7 +582,7 @@ var VehicleFactory = (function (_super) {
         _super.prototype.update.call(this, event);
     };
     VehicleFactory.prototype.addVehicle = function () {
-        var locations = [{ x: 29, y: 1, h: 270 }, { x: 10, y: 2, h: 180 }, { x: 10, y: 17, h: 0 }, { x: 29, y: 17, h: 0 }];
+        var locations = [{ x: 32, y: 1, h: 270 }, { x: 10, y: -1, h: 180 }, { x: 10, y: 20, h: 0 }, { x: 29, y: 20, h: 0 }];
         var rnd = Math.floor(Math.random() * 4);
         var location = locations[rnd];
         var newVehicle = this.createVehicle(location.x, location.y, location.h);

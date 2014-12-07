@@ -10,7 +10,7 @@ class VehicleFactory extends GameObjectContainer {
     init() {
         //this.pushObject(new Vehicle(28, 12, 'sportscar', 0, 100, 10, 4, this.mapData))
         //this.pushObject(new Vehicle(28, 12, 'minivan', 180, 75, 10, 2, this.mapData))
-        this.pushObject(new Vehicle(28, 12, 'truck', 180, 50, 10, 2, this.mapData))
+        //this.pushObject(new Vehicle(28, 12, 'truck', 180, 50, 10, 2, this.mapData))
         //this.pushObject(new Vehicle(28, 12, 'sportscar', 180, 50, 2, 15, this.mapData))
         //this.pushObject(new Vehicle(28, 12, 'sportscar', 180, 100, 2, 10, this.mapData))
 
@@ -40,10 +40,10 @@ class VehicleFactory extends GameObjectContainer {
     }
 
     addVehicle():void {
-        var locations = [{x:29,y:1,h:270},
-            {x:10,y:2,h:180},
-            {x:10,y:17,h:0},
-            {x:29,y:17,h:0}]
+        var locations = [{x:32,y:1,h:270},
+            {x:10,y:-1,h:180},
+            {x:10,y:20,h:0},
+            {x:29,y:20,h:0}]
 
         var rnd = Math.floor(Math.random() * 4);
         var location = locations[rnd];

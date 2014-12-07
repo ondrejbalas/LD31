@@ -13,6 +13,7 @@ class Vehicle implements IGameObject {
     state:VehicleStates;
     desiredHeading:number;
     speedcap:number;
+    hasEnteredMap:boolean=false;
 
     allowLeftTurn: (x:number, y:number) => boolean;
     leftTurnInProgress:boolean = false;
@@ -38,6 +39,9 @@ class Vehicle implements IGameObject {
         //this.heading = Math.floor(Math.random() * 360);
         //this.speed = 5 + Math.floor(Math.random() * 5);
         this.speedcap = 10;
+        var adjustments = this.calculateLaneAdjustments(this.x, this.y, this.startX, this.startY);
+        this.x = this.x + adjustments.xAdjust;
+        this.y = this.y + adjustments.yAdjust;
     }
 
     preload():IAssetPath[] {
@@ -90,6 +94,13 @@ class Vehicle implements IGameObject {
         var sqValidN = this.desiredHeading === 180 ? 0 : this.mapData.squares[newSqX][newSqY - 1];
         var sqValidE = this.desiredHeading === 270 ? 0 : this.mapData.squares[newSqX + 1][newSqY];
 
+        if(this.hasEnteredMap) {
+            if(sqValidN !== 1) sqValidN = 0;
+            if(sqValidE !== 1) sqValidE = 0;
+            if(sqValidS !== 1) sqValidS = 0;
+            if(sqValidW !== 1) sqValidW = 0;
+        }
+
         if((this.desiredHeading === 0 && sqValidN) ||
             (this.desiredHeading === 90 && sqValidE) ||
             (this.desiredHeading === 180 && sqValidS) ||
@@ -131,6 +142,33 @@ class Vehicle implements IGameObject {
         }
     }
 
+    calculateLaneAdjustments(newX:number, newY:number, newSqX:number, newSqY:number):
+        {xAdjust:number; yAdjust:number}
+    {
+        var xAdjust = 0, yAdjust = 0;
+
+        var headingEorW = (heading:number) => { return heading === 90 || heading === 270 };
+        var headingNorS = (heading:number) => { return heading === 0 || heading === 180 };
+
+        if(headingEorW(this.heading)) {
+            var optimalY = 0;
+            if(this.heading === 90) optimalY = (19 + this.width) + (newSqY * 32);
+            if(this.heading === 270) optimalY = (13 - this.width) + (newSqY * 32);
+
+            yAdjust = optimalY - newY;
+        }
+
+        if(headingNorS(this.heading)) {
+            var optimalX;
+            if(this.heading === 0) optimalX = (19 + this.width) + (newSqX * 32);
+            if(this.heading === 180) optimalX = (13 - this.width) + (newSqX * 32);
+
+            xAdjust = optimalX - newX;
+        }
+
+        return {xAdjust:xAdjust,yAdjust:yAdjust};
+    }
+
     update(event:createjs.TickerEvent):void {
         // remember where i was last tick
         var oldX = this.x;
@@ -153,8 +191,6 @@ class Vehicle implements IGameObject {
 
         // set some vars that I'll need later
         var enteredNewSquare = oldSqX !== newSqX || oldSqY !== newSqY;
-        var headingEorW = (heading:number) => { return heading === 90 || heading === 270 };
-        var headingNorS = (heading:number) => { return heading === 0 || heading === 180 };
 
         // Make adjustments based on my current state
         switch (this.state) {
@@ -164,21 +200,15 @@ class Vehicle implements IGameObject {
                 this.heading = this.desiredHeading;
 
                 // if not in my lane, move towards the optimal position for my heading
-                if(headingEorW(this.heading)) {
-                    var optimalY = 0;
-                    if(this.heading === 90) optimalY = (19 + this.width) + (newSqY * 32);
-                    if(this.heading === 270) optimalY = (13 - this.width) + (newSqY * 32); // 12 = 2, 10 = 4
-                    if(newY < optimalY) newY = newY + Math.min(generalVelocity, optimalY - newY);
-                    if(newY > optimalY) newY = newY - Math.min(generalVelocity, newY - optimalY);
-                }
+                var adjustments = this.calculateLaneAdjustments(newX, newY, newSqX, newSqY);
+                if(adjustments.yAdjust < 0) newY = newY - Math.min(generalVelocity, Math.abs(adjustments.yAdjust));
+                if(adjustments.yAdjust > 0) newY = newY + Math.min(generalVelocity, Math.abs(adjustments.yAdjust));
+                if(adjustments.xAdjust < 0) newX = newX - Math.min(generalVelocity, Math.abs(adjustments.xAdjust));
+                if(adjustments.xAdjust > 0) newX = newX + Math.min(generalVelocity, Math.abs(adjustments.xAdjust));
 
-                if(headingNorS(this.heading)) {
-                    var optimalX;
-                    if(this.heading === 0) optimalX = (19 + this.width) + (newSqX * 32);
-                    if(this.heading === 180) optimalX = (13 - this.width) + (newSqX * 32);
-                    if(newX < optimalX) newX = newX + Math.min(generalVelocity, optimalX - newX);
-                    if(newX > optimalX) newX = newX - Math.min(generalVelocity, newX - optimalX);
-                }
+                //if(newX < optimalX) newX = newX + Math.min(generalVelocity, optimalX - newX);
+                //if(newX > optimalX) newX = newX - Math.min(generalVelocity, newX - optimalX);
+
                 break;
             }
             case VehicleStates.TurningRight: {
@@ -196,6 +226,7 @@ class Vehicle implements IGameObject {
         }
 
         if(enteredNewSquare) {
+            if(this.mapData.squares[newSqX][newSqY] === 1) this.hasEnteredMap = true;
             this.decideNextAction(oldSqX, oldSqY, newSqX, newSqY, newX, newY);
         }
 
