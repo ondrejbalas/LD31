@@ -32,15 +32,15 @@ class World extends GameObjectContainer {
         console.log('world:init enter');
         createjs.Ticker.setFPS(60);
 
-        this.map = new BgMap();
+        this.map = new BgMap(true);
         this.scoreboard = new ScoreBoard();
         this.grid = new GridOverlay('#999', 32, 1024, 640, 120, 0);
 
         this.pushObject(this.map);
-        this.pushObject(new Vehicle(28, 12, 'blue', 0, 20, 10, 17))
-        this.pushObject(new Vehicle(28, 12, 'red', 90, 25, 10, 1))
-        this.pushObject(new Vehicle(28, 12, 'purple', 180, 30, 2, 5))
-        this.pushObject(new Vehicle(28, 12, 'yellow', 270, 35, 29, 1))
+        this.pushObject(new Vehicle(28, 12, 'blue', 0, 121, 10, 4, this.map))
+        //this.pushObject(new Vehicle(28, 12, 'red', 90, 4, 10, 1, this.map))
+        //this.pushObject(new Vehicle(28, 12, 'purple', 180, 4, 2, 5, this.map))
+        //this.pushObject(new Vehicle(28, 12, 'yellow', 270, 4, 29, 1, this.map))
 
         this.pushObject(this.scoreboard);
         this.pushObject(this.grid);

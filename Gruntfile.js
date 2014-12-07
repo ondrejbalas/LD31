@@ -57,14 +57,14 @@ module.exports = function (grunt) {
         watch: {
             ts: {
                 files: ['<%= yeoman.app %>/scripts/app.ts', '<%= yeoman.app %>/scripts/ts/**/*.ts', '!<%= yeoman.app %>/scripts/ts/**/*.d.ts'],
-                tasks: ['ts:app', 'ts:dev', 'jshint'],
+                tasks: ['ts:app', 'ts:dev'],
                 options: {
                     livereload: true
                 }
             },
             js: {
                 files: ['<%= yeoman.app %>/scripts/{,*/}*.js'],
-                tasks: ['jshint'],
+                tasks: [],
                 options: {
                     livereload: true
                 }
@@ -415,7 +415,6 @@ module.exports = function (grunt) {
 
     grunt.registerTask('default', [
         'ts:dev',
-        'newer:jshint',
         'bower',
         'test',
         'build'

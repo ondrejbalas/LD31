@@ -11,7 +11,7 @@
     "latedef": false,
     "newcap": false,
     "noarg": true,
-    "quotmark": "single",
+    "quotmark": false,
     "undef": false,
     "unused": false,
     "strict": false,
@@ -19,5 +19,6 @@
     "smarttabs": true,
     "jquery": true,
     "predef": ["define"],
-    "shadow": true
+    "shadow": true,
+    "sub": true
 }

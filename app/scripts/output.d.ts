@@ -17,7 +17,10 @@ interface ISquare {
     y: number;
 }
 declare class BgMap implements IGameObject {
+    drawValidSquares: boolean;
     bg: createjs.Bitmap;
+    squares: number[][];
+    constructor(drawValidSquares: boolean);
     init(): void;
     preload(): IAssetPath[];
     loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
@@ -70,6 +73,12 @@ declare class ScoreBoard implements IGameObject {
     update(event: createjs.TickerEvent): void;
     unloadContent(stage: createjs.Stage): void;
 }
+declare enum VehicleStates {
+    MovingForward = 1,
+    TurningLeft = 2,
+    TurningRight = 3,
+    WaitingAtIntersection = 4,
+}
 declare class Vehicle implements IGameObject {
     length: number;
     width: number;
@@ -78,13 +87,19 @@ declare class Vehicle implements IGameObject {
     speed: number;
     startX: number;
     startY: number;
+    mapData: BgMap;
     x: number;
     y: number;
+    highlight: createjs.Shape;
     rect: createjs.Shape;
-    constructor(length: number, width: number, color: string, heading: number, speed: number, startX: number, startY: number);
+    state: VehicleStates;
+    desiredHeading: number;
+    constructor(length: number, width: number, color: string, heading: number, speed: number, startX: number, startY: number, mapData: BgMap);
     init(): void;
     preload(): IAssetPath[];
     loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
+    turnTowardsHeading(heading: number, desiredHeading: number, maxAbsTurnAngle: number, turnDirection: number): number;
+    decideNextAction(oldSqX: number, oldSqY: number, newSqX: number, newSqY: number): void;
     update(event: createjs.TickerEvent): void;
     unloadContent(stage: createjs.Stage): void;
 }

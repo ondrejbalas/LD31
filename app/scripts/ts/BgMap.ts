@@ -8,9 +8,6 @@ class BgMap implements IGameObject {
     squares:number[][] = [[]];
 
     constructor(public drawValidSquares:boolean) {
-    }
-
-    init():void {
         var validSquares:ISquare[] = [
             { x: 2, y: 5},
             { x: 3, y: 5},
@@ -144,8 +141,12 @@ class BgMap implements IGameObject {
         }
 
         _.each(validSquares, (sq) => {
-           this.squares[sq.x][sq.y] = 1;
+            this.squares[sq.x][sq.y] = 1;
         });
+    }
+
+    init():void {
+
     }
 
     preload():IAssetPath[] {
