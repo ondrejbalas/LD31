@@ -109,9 +109,17 @@ declare class Vehicle implements IGameObject {
 }
 declare class VehicleFactory extends GameObjectContainer {
     mapData: BgMap;
-    constructor(mapData: BgMap);
+    timeBetweenSpawnsMs: number;
+    lastCreation: number;
+    private stage;
+    private lib;
+    constructor(mapData: BgMap, timeBetweenSpawnsMs: number);
     init(): void;
     preload(): IAssetPath[];
+    loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
+    update(event: createjs.TickerEvent): void;
+    addVehicle(): void;
+    createVehicle(x: number, y: number, h: number): Vehicle;
 }
 declare class World extends GameObjectContainer {
     stage: createjs.Stage;

@@ -412,13 +412,13 @@ var Vehicle = (function () {
                 this.leftTurnInProgress = false;
                 this.allowLeftTurn = function (x, y) {
                     if (wasHeading === 270)
-                        return x < newX - 21;
+                        return x < newX - 23;
                     if (wasHeading === 90)
-                        return x > newX + 21;
+                        return x > newX + 23;
                     if (wasHeading === 180)
-                        return y > newY + 21;
+                        return y > newY + 23;
                     if (wasHeading === 0)
-                        return y < newY - 21;
+                        return y < newY - 23;
                 };
                 this.state = 2 /* TurningLeft */;
             }
@@ -515,16 +515,18 @@ var __extends = this.__extends || function (d, b) {
 };
 var VehicleFactory = (function (_super) {
     __extends(VehicleFactory, _super);
-    function VehicleFactory(mapData) {
+    function VehicleFactory(mapData, timeBetweenSpawnsMs) {
         _super.call(this);
         this.mapData = mapData;
+        this.timeBetweenSpawnsMs = timeBetweenSpawnsMs;
+        this.lastCreation = -1000000;
     }
     VehicleFactory.prototype.init = function () {
-        this.pushObject(new Vehicle(28, 12, 'sportscar', 0, 100, 10, 4, this.mapData));
-        this.pushObject(new Vehicle(28, 12, 'minivan', 180, 75, 10, 2, this.mapData));
-        this.pushObject(new Vehicle(28, 12, 'truck', 180, 50, 2, 14, this.mapData));
-        this.pushObject(new Vehicle(28, 12, 'sportscar', 180, 50, 2, 15, this.mapData));
-        this.pushObject(new Vehicle(28, 12, 'sportscar', 180, 100, 2, 10, this.mapData));
+        //this.pushObject(new Vehicle(28, 12, 'sportscar', 0, 100, 10, 4, this.mapData))
+        //this.pushObject(new Vehicle(28, 12, 'minivan', 180, 75, 10, 2, this.mapData))
+        this.pushObject(new Vehicle(28, 12, 'truck', 180, 50, 10, 2, this.mapData));
+        //this.pushObject(new Vehicle(28, 12, 'sportscar', 180, 50, 2, 15, this.mapData))
+        //this.pushObject(new Vehicle(28, 12, 'sportscar', 180, 100, 2, 10, this.mapData))
         _super.prototype.init.call(this);
     };
     VehicleFactory.prototype.preload = function () {
@@ -533,6 +535,46 @@ var VehicleFactory = (function (_super) {
         paths.push({ id: 'sportscar', src: 'sportscar.png' }); // 21 x 12
         paths.push({ id: 'truck', src: 'truck.png' }); // 28 x 12
         return paths;
+    };
+    VehicleFactory.prototype.loadContent = function (stage, lib) {
+        this.stage = stage;
+        this.lib = lib;
+        _super.prototype.loadContent.call(this, stage, lib);
+    };
+    VehicleFactory.prototype.update = function (event) {
+        if (event.runTime > this.lastCreation + this.timeBetweenSpawnsMs) {
+            this.lastCreation = event.runTime;
+            this.addVehicle();
+        }
+        _super.prototype.update.call(this, event);
+    };
+    VehicleFactory.prototype.addVehicle = function () {
+        var locations = [{ x: 29, y: 1, h: 270 }, { x: 10, y: 2, h: 180 }, { x: 10, y: 17, h: 0 }, { x: 29, y: 17, h: 0 }];
+        var rnd = Math.floor(Math.random() * 4);
+        var location = locations[rnd];
+        var newVehicle = this.createVehicle(location.x, location.y, location.h);
+        newVehicle.init();
+        newVehicle.loadContent(this.stage, this.lib);
+        this.pushObject(newVehicle);
+    };
+    VehicleFactory.prototype.createVehicle = function (x, y, h) {
+        var rnd = Math.floor(Math.random() * 3);
+        var type, speed;
+        switch (rnd) {
+            case 0:
+                type = 'sportscar';
+                speed = 100;
+                break;
+            case 1:
+                type = 'minivan';
+                speed = 75;
+                break;
+            case 2:
+                type = 'truck';
+                speed = 50;
+                break;
+        }
+        return new Vehicle(28, 12, type, h, speed, x, y, this.mapData);
     };
     return VehicleFactory;
 })(GameObjectContainer);
@@ -564,7 +606,7 @@ var World = (function (_super) {
         createjs.Ticker.setFPS(60);
         this.map = new BgMap(false);
         this.scoreboard = new ScoreBoard();
-        this.factory = new VehicleFactory(this.map);
+        this.factory = new VehicleFactory(this.map, 500);
         this.grid = new GridOverlay('#999', 32, 1024, 640, 120, 0);
         this.pushObject(this.map);
         this.pushObject(this.factory);

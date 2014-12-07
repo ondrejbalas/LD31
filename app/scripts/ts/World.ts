@@ -35,7 +35,7 @@ class World extends GameObjectContainer {
 
         this.map = new BgMap(false);
         this.scoreboard = new ScoreBoard();
-        this.factory = new VehicleFactory(this.map);
+        this.factory = new VehicleFactory(this.map, 500);
         this.grid = new GridOverlay('#999', 32, 1024, 640, 120, 0);
 
         this.pushObject(this.map);

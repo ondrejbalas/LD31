@@ -120,10 +120,10 @@ class Vehicle implements IGameObject {
                 //console.log('turning left');
                 this.leftTurnInProgress = false;
                 this.allowLeftTurn = (x, y) => {
-                    if(wasHeading === 270) return x < newX - 21;
-                    if(wasHeading === 90) return x > newX + 21;
-                    if(wasHeading === 180) return y > newY + 21;
-                    if(wasHeading === 0) return y < newY - 21;
+                    if(wasHeading === 270) return x < newX - 23;
+                    if(wasHeading === 90) return x > newX + 23;
+                    if(wasHeading === 180) return y > newY + 23;
+                    if(wasHeading === 0) return y < newY - 23;
                 }
 
                 this.state = VehicleStates.TurningLeft;
