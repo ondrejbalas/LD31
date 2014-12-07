@@ -11,8 +11,8 @@ class Vehicle implements IGameObject {
                 public startX: number,
                 public startY: number)
     {
-        this.x = 136 + startX * 32;
-        this.y = 16 + startY * 32;
+        this.x = 120 + startX * 32;
+        this.y = startY * 32;
     }
 
     init():void {
@@ -28,8 +28,8 @@ class Vehicle implements IGameObject {
 
     loadContent(stage:createjs.Stage, lib:AssetLibrary):void {
         this.rect = new createjs.Shape();
-        //this.rect.regX = Math.floor(this.width / 2);
-        //this.rect.regY = Math.floor(this.length / 2);
+        this.rect.regX = Math.floor(this.width / 2);
+        this.rect.regY = Math.floor(this.length / 2);
         this.rect.graphics
             .beginFill(this.color)
             .drawRect(0, 0, this.width, this.length)
@@ -48,6 +48,12 @@ class Vehicle implements IGameObject {
         this.rect.x = Math.floor(this.x);
         this.rect.y = Math.floor(this.y);
         this.rect.rotation = this.heading;
+
+        if(this.heading === 0) this.rect.x += 24;
+        if(this.heading === 180) this.rect.x += 8;
+        if(this.heading === 90) this.rect.y += 24;
+        if(this.heading === 270) this.rect.y += 8;
+
     }
 
     unloadContent(stage:createjs.Stage):void {

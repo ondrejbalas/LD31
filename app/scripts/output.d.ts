@@ -12,6 +12,10 @@ declare class AssetLibrary {
     addAll(assets: IAssetPath[]): void;
     preload(callback: () => void): void;
 }
+interface ISquare {
+    x: number;
+    y: number;
+}
 declare class BgMap implements IGameObject {
     bg: createjs.Bitmap;
     init(): void;
