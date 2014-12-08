@@ -15,6 +15,7 @@ declare class AssetLibrary {
 interface ISquare {
     x: number;
     y: number;
+    t: number;
 }
 declare class BgMap implements IGameObject {
     drawValidSquares: boolean;
@@ -54,6 +55,8 @@ declare class GridOverlay implements IGameObject {
 }
 declare class Helpers {
     globaltick: any;
+    boundsCheck(check: number, min: number, max: number): boolean;
+    distance(x1: number, y1: number, x2: number, y2: number): number;
 }
 declare class IAssetPath {
     id: string;
@@ -81,29 +84,52 @@ declare enum VehicleStates {
     WaitingAtIntersection = 4,
 }
 declare class Vehicle implements IGameObject {
+    id: number;
     length: number;
     width: number;
     imgid: string;
     heading: number;
-    speed: number;
-    startX: number;
-    startY: number;
+    desiredSpeed: number;
+    sqX: number;
+    sqY: number;
     mapData: BgMap;
+    private factory;
+    showHighlight: boolean;
     x: number;
     y: number;
     highlight: createjs.Shape;
     img: createjs.Bitmap;
     state: VehicleStates;
     desiredHeading: number;
+    speed: number;
     speedcap: number;
+    hasEnteredMap: boolean;
+    idleTime: number;
     allowLeftTurn: (x: number, y: number) => boolean;
     leftTurnInProgress: boolean;
-    constructor(length: number, width: number, imgid: string, heading: number, speed: number, startX: number, startY: number, mapData: BgMap);
+    justCreated: boolean;
+    constructor(id: number, length: number, width: number, imgid: string, heading: number, desiredSpeed: number, sqX: number, sqY: number, mapData: BgMap, factory: VehicleFactory);
     init(): void;
     preload(): IAssetPath[];
     loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
     turnTowardsHeading(heading: number, desiredHeading: number, maxAbsTurnAngle: number, turnDirection: number): number;
-    decideNextAction(oldSqX: number, oldSqY: number, newSqX: number, newSqY: number, newX: number, newY: number): void;
+    decideNextActions(howMany: number, newSqX: number, newSqY: number, currentDesiredHeading: number): {
+        nextAction: VehicleStates;
+        newDesiredHeading: number;
+        nextSqX: number;
+        nextSqY: number;
+    }[];
+    decideNextAction(newSqX: number, newSqY: number, currentDesiredHeading: number): {
+        nextAction: VehicleStates;
+        newDesiredHeading: number;
+        nextSqX: number;
+        nextSqY: number;
+    };
+    calculateLaneAdjustments(newX: number, newY: number, newSqX: number, newSqY: number): {
+        xAdjust: number;
+        yAdjust: number;
+    };
+    getVehiclesAhead(squaresAhead: number, sqX: any, sqY: any): Vehicle[];
     update(event: createjs.TickerEvent): void;
     unloadContent(stage: createjs.Stage): void;
 }
@@ -111,13 +137,26 @@ declare class VehicleFactory extends GameObjectContainer {
     mapData: BgMap;
     timeBetweenSpawnsMs: number;
     lastCreation: number;
+    lastVehicleCreationId: number;
     private stage;
     private lib;
+    spawnedVehicles: Vehicle[];
+    squares: number[][][];
     constructor(mapData: BgMap, timeBetweenSpawnsMs: number);
     init(): void;
     preload(): IAssetPath[];
     loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
     update(event: createjs.TickerEvent): void;
+    whichVehiclesAreInTheSquare(sq: {
+        sqX: number;
+        sqY: number;
+    }): Vehicle[];
+    whichVehiclesAreInTheSquares(squares: {
+        sqX: number;
+        sqY: number;
+    }[]): Vehicle[];
+    howManyVehiclesHaveNotYetEnteredTheMap(): number;
+    getVehicleById(id: number): Vehicle;
     addVehicle(): void;
     createVehicle(x: number, y: number, h: number): Vehicle;
 }

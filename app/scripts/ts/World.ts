@@ -31,7 +31,7 @@ class World extends GameObjectContainer {
 
     init():void {
         console.log('world:init enter');
-        createjs.Ticker.setFPS(60);
+        createjs.Ticker.setFPS(30);
 
         this.map = new BgMap(false);
         this.scoreboard = new ScoreBoard();

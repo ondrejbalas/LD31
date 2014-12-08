@@ -209,8 +209,6 @@ var GameObjectContainer = (function () {
         this.gameObjects = [];
     }
     GameObjectContainer.prototype.pushObject = function (obj) {
-        if (this.gameObjects === undefined)
-            debugger;
         this.gameObjects.push(obj);
     };
     GameObjectContainer.prototype.init = function () {
@@ -290,6 +288,13 @@ var GridOverlay = (function () {
 var Helpers = (function () {
     function Helpers() {
     }
+    Helpers.prototype.boundsCheck = function (check, min, max) {
+        return check >= min && check <= max;
+    };
+    Helpers.prototype.distance = function (x1, y1, x2, y2) {
+        //return Math.sqrt( (x2-=x1)*x2 + (y2-=y1)*y2 );
+        return Math.abs(x2 - x1) + Math.abs(y2 - y1);
+    };
     return Helpers;
 })();
 var IAssetPath = (function () {
@@ -325,20 +330,26 @@ var VehicleStates;
 })(VehicleStates || (VehicleStates = {}));
 ;
 var Vehicle = (function () {
-    function Vehicle(length, width, imgid, heading, speed, startX, startY, mapData) {
+    function Vehicle(id, length, width, imgid, heading, desiredSpeed, sqX, sqY, mapData, factory) {
+        this.id = id;
         this.length = length;
         this.width = width;
         this.imgid = imgid;
         this.heading = heading;
-        this.speed = speed;
-        this.startX = startX;
-        this.startY = startY;
+        this.desiredSpeed = desiredSpeed;
+        this.sqX = sqX;
+        this.sqY = sqY;
         this.mapData = mapData;
+        this.factory = factory;
+        this.showHighlight = false;
         this.hasEnteredMap = false;
+        this.idleTime = 0;
         this.leftTurnInProgress = false;
-        this.x = 16 + startX * 32;
-        this.y = 16 + startY * 32;
+        this.justCreated = true;
+        this.x = 16 + sqX * 32;
+        this.y = 16 + sqY * 32;
         this.state = 1 /* MovingForward */;
+        this.speed = desiredSpeed;
         this.desiredHeading = heading;
     }
     Vehicle.prototype.init = function () {
@@ -347,7 +358,7 @@ var Vehicle = (function () {
         //this.heading = Math.floor(Math.random() * 360);
         //this.speed = 5 + Math.floor(Math.random() * 5);
         this.speedcap = 10;
-        var adjustments = this.calculateLaneAdjustments(this.x, this.y, this.startX, this.startY);
+        var adjustments = this.calculateLaneAdjustments(this.x, this.y, this.sqX, this.sqY);
         this.x = this.x + adjustments.xAdjust;
         this.y = this.y + adjustments.yAdjust;
     };
@@ -359,11 +370,11 @@ var Vehicle = (function () {
         this.img.regX = Math.floor(this.width / 2);
         this.img.regY = Math.floor(this.length / 2);
         stage.addChild(this.img);
-        //this.highlight = new createjs.Shape();
-        //this.highlight.graphics
-        //    .beginFill('yellow')
-        //    .drawRect(8, 8, 16, 16);
-        //stage.addChild(this.highlight);
+        if (this.showHighlight) {
+            this.highlight = new createjs.Shape();
+            this.highlight.graphics.beginFill('yellow').drawRect(8, 8, 16, 16);
+            stage.addChild(this.highlight);
+        }
     };
     Vehicle.prototype.turnTowardsHeading = function (heading, desiredHeading, maxAbsTurnAngle, turnDirection) {
         var tempDesired = desiredHeading;
@@ -380,20 +391,32 @@ var Vehicle = (function () {
         if (turnDirection < 0) {
             turnAmount = Math.max(tempDesired, heading - maxAbsTurnAngle);
         }
-        if (isNaN(turnAmount))
-            debugger;
         turnAmount = turnAmount % 360;
-        if (isNaN(turnAmount))
-            debugger;
         return turnAmount;
     };
-    Vehicle.prototype.decideNextAction = function (oldSqX, oldSqY, newSqX, newSqY, newX, newY) {
+    Vehicle.prototype.decideNextActions = function (howMany, newSqX, newSqY, currentDesiredHeading) {
+        var nexts = [];
+        if (howMany > 1) {
+            nexts.push(this.decideNextAction(newSqX, newSqY, currentDesiredHeading));
+            var tempNext = nexts[nexts.length - 1];
+            var res = this.decideNextActions(howMany - 1, tempNext.nextSqX, tempNext.nextSqY, tempNext.newDesiredHeading);
+            _.each(res, function (n) {
+                nexts.push(n);
+            });
+        }
+        else {
+            nexts.push(this.decideNextAction(newSqX, newSqY, currentDesiredHeading));
+        }
+        return nexts;
+    };
+    Vehicle.prototype.decideNextAction = function (newSqX, newSqY, currentDesiredHeading) {
         // vehicle is entering a new square. figure out what it should be doing next.
-        //console.log('was in (' + oldSqX + ',' + oldSqY + ') and now in (' + newSqX + ',' + newSqY + ')');
-        var sqValidS = this.desiredHeading === 0 ? 0 : this.mapData.squares[newSqX][newSqY + 1];
-        var sqValidW = this.desiredHeading === 90 ? 0 : this.mapData.squares[newSqX - 1][newSqY];
-        var sqValidN = this.desiredHeading === 180 ? 0 : this.mapData.squares[newSqX][newSqY - 1];
-        var sqValidE = this.desiredHeading === 270 ? 0 : this.mapData.squares[newSqX + 1][newSqY];
+        var nextAction;
+        var newDesiredHeading;
+        var sqValidS = currentDesiredHeading === 0 ? 0 : this.mapData.squares[newSqX][newSqY + 1];
+        var sqValidW = currentDesiredHeading === 90 ? 0 : this.mapData.squares[newSqX - 1][newSqY];
+        var sqValidN = currentDesiredHeading === 180 ? 0 : this.mapData.squares[newSqX][newSqY - 1];
+        var sqValidE = currentDesiredHeading === 270 ? 0 : this.mapData.squares[newSqX + 1][newSqY];
         if (this.hasEnteredMap) {
             if (sqValidN !== 1)
                 sqValidN = 0;
@@ -404,49 +427,48 @@ var Vehicle = (function () {
             if (sqValidW !== 1)
                 sqValidW = 0;
         }
-        if ((this.desiredHeading === 0 && sqValidN) || (this.desiredHeading === 90 && sqValidE) || (this.desiredHeading === 180 && sqValidS) || (this.desiredHeading === 270 && sqValidW)) {
+        if ((currentDesiredHeading === 0 && sqValidN) || (currentDesiredHeading === 90 && sqValidE) || (currentDesiredHeading === 180 && sqValidS) || (currentDesiredHeading === 270 && sqValidW)) {
             // Going straight
             //console.log('going straight!')
-            this.state = 1 /* MovingForward */;
+            nextAction = 1 /* MovingForward */;
+            newDesiredHeading = currentDesiredHeading;
         }
         else {
             // We have to turn, are we turning left or right?
-            var wasHeading = this.desiredHeading;
-            if (this.desiredHeading === 0 && sqValidE)
-                this.desiredHeading = 90;
-            if (this.desiredHeading === 0 && sqValidW)
-                this.desiredHeading = 270;
-            if (this.desiredHeading === 90 && sqValidN)
-                this.desiredHeading = 0;
-            if (this.desiredHeading === 90 && sqValidS)
-                this.desiredHeading = 180;
-            if (this.desiredHeading === 180 && sqValidE)
-                this.desiredHeading = 90;
-            if (this.desiredHeading === 180 && sqValidW)
-                this.desiredHeading = 270;
-            if (this.desiredHeading === 270 && sqValidN)
-                this.desiredHeading = 0;
-            if (this.desiredHeading === 270 && sqValidS)
-                this.desiredHeading = 180;
-            if (wasHeading + 90 === this.desiredHeading || wasHeading === 270 && this.desiredHeading === 0) {
-                this.state = 3 /* TurningRight */;
+            if (currentDesiredHeading === 0 && sqValidE)
+                newDesiredHeading = 90;
+            if (currentDesiredHeading === 0 && sqValidW)
+                newDesiredHeading = 270;
+            if (currentDesiredHeading === 90 && sqValidN)
+                newDesiredHeading = 0;
+            if (currentDesiredHeading === 90 && sqValidS)
+                newDesiredHeading = 180;
+            if (currentDesiredHeading === 180 && sqValidE)
+                newDesiredHeading = 90;
+            if (currentDesiredHeading === 180 && sqValidW)
+                newDesiredHeading = 270;
+            if (currentDesiredHeading === 270 && sqValidN)
+                newDesiredHeading = 0;
+            if (currentDesiredHeading === 270 && sqValidS)
+                newDesiredHeading = 180;
+            if (currentDesiredHeading + 90 === newDesiredHeading || currentDesiredHeading === 270 && newDesiredHeading === 0) {
+                nextAction = 3 /* TurningRight */;
             }
             else {
-                //console.log('turning left');
-                this.leftTurnInProgress = false;
-                this.allowLeftTurn = function (x, y) {
-                    if (wasHeading === 270)
-                        return x < newX - 23;
-                    if (wasHeading === 90)
-                        return x > newX + 23;
-                    if (wasHeading === 180)
-                        return y > newY + 23;
-                    if (wasHeading === 0)
-                        return y < newY - 23;
-                };
-                this.state = 2 /* TurningLeft */;
+                nextAction = 2 /* TurningLeft */;
             }
         }
+        var nextSqX = newSqX;
+        var nextSqY = newSqY;
+        if (newDesiredHeading === 0)
+            nextSqY = newSqY - 1;
+        if (newDesiredHeading === 90)
+            nextSqX = newSqX + 1;
+        if (newDesiredHeading === 180)
+            nextSqY = newSqY + 1;
+        if (newDesiredHeading === 270)
+            nextSqX = newSqX - 1;
+        return { nextAction: nextAction, newDesiredHeading: newDesiredHeading, nextSqX: nextSqX, nextSqY: nextSqY };
     };
     Vehicle.prototype.calculateLaneAdjustments = function (newX, newY, newSqX, newSqY) {
         var xAdjust = 0, yAdjust = 0;
@@ -474,10 +496,43 @@ var Vehicle = (function () {
         }
         return { xAdjust: xAdjust, yAdjust: yAdjust };
     };
+    Vehicle.prototype.getVehiclesAhead = function (squaresAhead, sqX, sqY) {
+        var nextActions = this.decideNextActions(3, sqX, sqY, this.desiredHeading);
+        //var nextSquare = this.decideNextAction(sqX, sqY, this.desiredHeading);
+        //var nextSquare2 = this.decideNextAction(nextSquare.nextSqX, nextSquare.nextSqY, nextSquare.newDesiredHeading);
+        //var nextSquare3 = this.decideNextAction(nextSquare2.nextSqX, nextSquare2.nextSqY, nextSquare2.newDesiredHeading);
+        var upcomingHeadings = [this.desiredHeading];
+        var squaresToCheck = [{ sqX: sqX, sqY: sqY }];
+        _.each(nextActions, function (action) {
+            upcomingHeadings.push(action.newDesiredHeading);
+            squaresToCheck.push({ sqX: action.nextSqX, sqY: action.nextSqY });
+        });
+        upcomingHeadings = _.uniq(upcomingHeadings);
+        var vehiclesToCheck = this.factory.whichVehiclesAreInTheSquares(squaresToCheck);
+        var myid = this.id;
+        var vehiclesWithSameHeading = _.filter(vehiclesToCheck, function (vehicle) {
+            var result = false;
+            if (myid !== vehicle.id) {
+                _.each(upcomingHeadings, function (heading) {
+                    if (heading === vehicle.desiredHeading) {
+                        result = true;
+                    }
+                });
+            }
+            return result;
+        });
+        return vehiclesWithSameHeading;
+    };
     Vehicle.prototype.update = function (event) {
+        var _this = this;
         // remember where i was last tick
         var oldX = this.x;
         var oldY = this.y;
+        if (this.idleTime > 1000 && this.speed === 0 && this.hasEnteredMap) {
+            //console.log('vehicle ' + this.id + ' idle for over a second and not moving. setting speed to 10');
+            this.idleTime = 0;
+            this.speed = 10;
+        }
         // figure out velocity based on heading. cap it at (this.speedcap) pixels of movement since last frame
         var xVelocity = Math.max(-this.speedcap, Math.min(this.speedcap, Math.sin(this.heading * (Math.PI / 180)) * (this.speed * event.delta / 1000)));
         var yVelocity = -Math.max(-this.speedcap, Math.min(this.speedcap, Math.cos(this.heading * (Math.PI / 180)) * (this.speed * event.delta / 1000)));
@@ -491,23 +546,16 @@ var Vehicle = (function () {
         var newSqX = Math.floor(newX / 32);
         var newSqY = Math.floor(newY / 32);
         // set some vars that I'll need later
-        var enteredNewSquare = oldSqX !== newSqX || oldSqY !== newSqY;
+        var enteredNewSquare = oldSqX !== newSqX || oldSqY !== newSqY || this.justCreated;
         switch (this.state) {
             case 1 /* MovingForward */:
                 {
                     // in case something got screwed up (dropped frames, etc) set heading to desiredHeading;
-                    //if(this.heading !== this.desiredHeading) console.log('heading issue. was ' + this.heading + ' should be ' + this.desiredHeading);
                     this.heading = this.desiredHeading;
                     // if not in my lane, move towards the optimal position for my heading
                     var adjustments = this.calculateLaneAdjustments(newX, newY, newSqX, newSqY);
-                    if (adjustments.yAdjust < 0)
-                        newY = newY - Math.min(generalVelocity, Math.abs(adjustments.yAdjust));
-                    if (adjustments.yAdjust > 0)
-                        newY = newY + Math.min(generalVelocity, Math.abs(adjustments.yAdjust));
-                    if (adjustments.xAdjust < 0)
-                        newX = newX - Math.min(generalVelocity, Math.abs(adjustments.xAdjust));
-                    if (adjustments.xAdjust > 0)
-                        newX = newX + Math.min(generalVelocity, Math.abs(adjustments.xAdjust));
+                    newY = newY + adjustments.yAdjust;
+                    newX = newX + adjustments.xAdjust;
                     break;
                 }
             case 3 /* TurningRight */:
@@ -524,17 +572,119 @@ var Vehicle = (function () {
                     break;
                 }
         }
+        if (!this.hasEnteredMap && this.speed === 0) {
+            // I'm sitting here waiting to enter. Is there a vehicle coming? if so, remain stopped.
+            var isVehicleComing = false;
+            var oncomingTrafficSquare;
+            if (oldSqX === 10 && oldSqY === 0)
+                oncomingTrafficSquare = { sqX: 11, sqY: 1 };
+            if (oldSqX === 10 && oldSqY === -1)
+                oncomingTrafficSquare = { sqX: 11, sqY: 1 };
+            if (oldSqX === 30 && oldSqY === 1)
+                oncomingTrafficSquare = { sqX: 29, sqY: 2 };
+            if (oldSqX === 29 && oldSqY === 18)
+                oncomingTrafficSquare = { sqX: 28, sqY: 17 };
+            if (oldSqX === 10 && oldSqY === 18)
+                oncomingTrafficSquare = { sqX: 9, sqY: 17 };
+            var vehiclesInSquare = this.factory.whichVehiclesAreInTheSquare(oncomingTrafficSquare);
+            isVehicleComing = vehiclesInSquare.length > 0;
+            if (!isVehicleComing) {
+                // If there is not a vehicle coming, how far away is the nearest vehicle ahead of me? If it's > 30 go
+                var vehiclesAhead = this.getVehiclesAhead(2, newSqX, newSqY);
+                var nearestVehicle = _.min(vehiclesAhead, function (vehicle) {
+                    return window.helpers.distance(_this.x, _this.y, vehicle.x, vehicle.y);
+                });
+                var distance = window.helpers.distance(this.x, this.y, nearestVehicle.x, nearestVehicle.y);
+                if (distance > 42) {
+                    this.speed = this.desiredSpeed;
+                }
+            }
+        }
         if (enteredNewSquare) {
-            if (this.mapData.squares[newSqX][newSqY] === 1)
-                this.hasEnteredMap = true;
-            this.decideNextAction(oldSqX, oldSqY, newSqX, newSqY, newX, newY);
+            if (window.helpers.boundsCheck(newSqX, 0, 31) && window.helpers.boundsCheck(newSqY, 0, 17)) {
+                if (this.mapData.squares[newSqX][newSqY] === 1)
+                    this.hasEnteredMap = true;
+            }
+        }
+        var vehiclesAhead = this.getVehiclesAhead(3, newSqX, newSqY);
+        if (vehiclesAhead.length === 0) {
+            this.speed = this.desiredSpeed;
+        }
+        else {
+            if (this.hasEnteredMap) {
+                var nearestVehicle = _.min(vehiclesAhead, function (vehicle) {
+                    return window.helpers.distance(_this.x, _this.y, vehicle.x, vehicle.y);
+                });
+                if (nearestVehicle === undefined)
+                    debugger;
+                var distance = window.helpers.distance(this.x, this.y, nearestVehicle.x, nearestVehicle.y);
+                //console.log('nearest vehicle to ' + this.id + ' is ' + nearestVehicle.id + ' with a distance of ' + distance);
+                if (distance < 72) {
+                    this.speed = Math.max(0, Math.min(this.desiredSpeed, nearestVehicle.speed - 10));
+                }
+                else {
+                    this.speed = this.desiredSpeed;
+                }
+            }
+            else {
+                if (enteredNewSquare) {
+                    this.speed = 0;
+                }
+            }
+        }
+        if (enteredNewSquare) {
+            if (window.helpers.boundsCheck(newSqX, 0, 31) && window.helpers.boundsCheck(newSqY, 0, 17)) {
+                if (this.mapData.squares[newSqX][newSqY] === 1)
+                    this.hasEnteredMap = true;
+                //console.log('Vehicle ' + this.id + ' was in [' + oldSqX + ',' + oldSqY + ']. With a heading of ' + this.heading
+                //+ ', and will now be in [' + newSqX + ',' + newSqY + ']. Checking for vehicles in: '
+                //+ '[' + newSqX + ',' + newSqY + '], '
+                //+ '[' + nextSquare.nextSqX + ',' + nextSquare.nextSqY + '], '
+                //+ '[' + nextSquare2.nextSqX + ',' + nextSquare2.nextSqY + '], '
+                //+ '[' + nextSquare3.nextSqX + ',' + nextSquare3.nextSqY + ']. ' +
+                //'found ' + vehiclesToCheck.length + 'vehicles, but only ' + vehiclesWithSameHeading.length + ' with same heading');
+                //console.log('vehicle ' + this.id + ' entering [' + newSqX + ',' + newSqY + ']. In sq: ' + vehiclesInSquare.length + ' and with heading: ' + vehiclesWithSameHeading.length);
+                //if(vehiclesInSquare.length > 1 && vehiclesWithSameHeading.length === 0) debugger;
+                this.sqX = newSqX;
+                this.sqY = newSqY;
+                if (oldSqX !== newSqX || oldSqY !== newSqY) {
+                    var result = this.decideNextAction(newSqX, newSqY, this.desiredHeading);
+                    this.state = result.nextAction;
+                    if (this.state === 3 /* TurningRight */) {
+                        this.desiredHeading = result.newDesiredHeading;
+                    }
+                    if (this.state === 2 /* TurningLeft */) {
+                        this.leftTurnInProgress = false;
+                        var wasHeading = this.desiredHeading;
+                        this.desiredHeading = result.newDesiredHeading;
+                        this.allowLeftTurn = function (x, y) {
+                            if (wasHeading === 270)
+                                return x < newX - 23;
+                            if (wasHeading === 90)
+                                return x > newX + 23;
+                            if (wasHeading === 180)
+                                return y > newY + 23;
+                            if (wasHeading === 0)
+                                return y < newY - 23;
+                        };
+                    }
+                }
+            }
+        }
+        if (this.speed === 0 || (newX === oldX && newY === oldY)) {
+            this.idleTime += event.delta;
         }
         this.x = newX;
         this.y = newY;
+        if (this.showHighlight) {
+            this.highlight.x = 120 + newSqX * 32;
+            this.highlight.y = newSqY * 32;
+        }
         // adjust draw position now
         this.img.x = Math.floor(this.x) + 120;
         this.img.y = Math.floor(this.y);
         this.img.rotation = (this.heading + 270) % 360;
+        this.justCreated = false;
     };
     Vehicle.prototype.unloadContent = function (stage) {
     };
@@ -553,13 +703,29 @@ var VehicleFactory = (function (_super) {
         this.mapData = mapData;
         this.timeBetweenSpawnsMs = timeBetweenSpawnsMs;
         this.lastCreation = -1000000;
+        this.lastVehicleCreationId = 1;
+        this.spawnedVehicles = [];
+        this.squares = [[[]]];
     }
     VehicleFactory.prototype.init = function () {
-        //this.pushObject(new Vehicle(28, 12, 'sportscar', 0, 100, 10, 4, this.mapData))
-        //this.pushObject(new Vehicle(28, 12, 'minivan', 180, 75, 10, 2, this.mapData))
-        //this.pushObject(new Vehicle(28, 12, 'truck', 180, 50, 10, 2, this.mapData))
-        //this.pushObject(new Vehicle(28, 12, 'sportscar', 180, 50, 2, 15, this.mapData))
-        //this.pushObject(new Vehicle(28, 12, 'sportscar', 180, 100, 2, 10, this.mapData))
+        for (var x = 0; x < 32; x++) {
+            this.squares[x] = [];
+            for (var y = 0; y < 24; y++) {
+                this.squares[x][y] = [];
+            }
+        }
+        //var truck = new Vehicle(this.lastVehicleCreationId++, 28, 12, 'truck', 0, 50, 10, 12, this.mapData, this)
+        //this.pushObject(truck);
+        //this.spawnedVehicles.push(truck);
+        //var car = new Vehicle(this.lastVehicleCreationId++, 28, 12, 'sportscar', 0, 100, 10, 14, this.mapData, this);
+        //this.pushObject(car);
+        //this.spawnedVehicles.push(car);
+        var car = new Vehicle(this.lastVehicleCreationId++, 28, 12, 'sportscar', 270, 100, 19, 11, this.mapData, this);
+        this.pushObject(car);
+        this.spawnedVehicles.push(car);
+        var truck = new Vehicle(this.lastVehicleCreationId++, 28, 12, 'truck', 270, 50, 18, 11, this.mapData, this);
+        this.pushObject(truck);
+        this.spawnedVehicles.push(truck);
         _super.prototype.init.call(this);
     };
     VehicleFactory.prototype.preload = function () {
@@ -575,20 +741,73 @@ var VehicleFactory = (function (_super) {
         _super.prototype.loadContent.call(this, stage, lib);
     };
     VehicleFactory.prototype.update = function (event) {
+        var _this = this;
         if (event.runTime > this.lastCreation + this.timeBetweenSpawnsMs) {
             this.lastCreation = event.runTime;
             this.addVehicle();
         }
+        for (var x = 0; x < 32; x++) {
+            for (var y = 0; y < 24; y++) {
+                this.squares[x][y] = [];
+            }
+        }
+        _.each(this.spawnedVehicles, function (vehicle) {
+            if (window.helpers.boundsCheck(vehicle.sqX, 0, 31) && window.helpers.boundsCheck(vehicle.sqY, 0, 17)) {
+                _this.squares[vehicle.sqX][vehicle.sqY].push(vehicle.id);
+            }
+        });
         _super.prototype.update.call(this, event);
     };
+    VehicleFactory.prototype.whichVehiclesAreInTheSquare = function (sq) {
+        var _this = this;
+        if (sq === undefined)
+            debugger;
+        if (window.helpers.boundsCheck(sq.sqX, 0, 31) && window.helpers.boundsCheck(sq.sqY, 0, 17)) {
+            return _.map(this.squares[sq.sqX][sq.sqY], function (vehicleId) {
+                return _this.getVehicleById(vehicleId);
+            });
+        }
+    };
+    VehicleFactory.prototype.whichVehiclesAreInTheSquares = function (squares) {
+        var _this = this;
+        var foundVehicles = [];
+        _.each(squares, function (sq) {
+            _.each(_this.whichVehiclesAreInTheSquare(sq), function (vehicle) {
+                foundVehicles.push(vehicle);
+            });
+        });
+        return _.uniq(foundVehicles);
+    };
+    VehicleFactory.prototype.howManyVehiclesHaveNotYetEnteredTheMap = function () {
+        var sum = _.reduce(this.spawnedVehicles, function (memo, vehicle) {
+            return memo + vehicle.hasEnteredMap ? 0 : 1;
+        }, 0);
+        return sum;
+    };
+    VehicleFactory.prototype.getVehicleById = function (id) {
+        return _.find(this.spawnedVehicles, function (vehicle) {
+            return vehicle.id === id;
+        });
+    };
     VehicleFactory.prototype.addVehicle = function () {
-        var locations = [{ x: 32, y: 1, h: 270 }, { x: 10, y: -1, h: 180 }, { x: 10, y: 20, h: 0 }, { x: 29, y: 20, h: 0 }];
-        var rnd = Math.floor(Math.random() * 4);
-        var location = locations[rnd];
-        var newVehicle = this.createVehicle(location.x, location.y, location.h);
-        newVehicle.init();
-        newVehicle.loadContent(this.stage, this.lib);
-        this.pushObject(newVehicle);
+        var locations = [];
+        if (this.whichVehiclesAreInTheSquare({ sqX: 10, sqY: 0 }).length === 0)
+            locations.push({ x: 10, y: -1, h: 180 });
+        //if(this.whichVehiclesAreInTheSquare({sqX: 31, sqY: 1})) locations.push({x:32,y:1,h:270});
+        //if(this.whichVehiclesAreInTheSquare({sqX: 10, sqY: 19})) locations.push({x:10,y:20,h:0});
+        //if(this.whichVehiclesAreInTheSquare({sqX: 29, sqY: 19})) locations.push({x:29,y:20,h:0});
+        if (locations.length > 0) {
+            var rnd = Math.floor(Math.random() * locations.length);
+            var location = locations[rnd];
+            var newVehicle = this.createVehicle(location.x, location.y, location.h);
+            newVehicle.init();
+            newVehicle.loadContent(this.stage, this.lib);
+            this.pushObject(newVehicle);
+            this.spawnedVehicles.push(newVehicle);
+        }
+        else {
+            console.log("can't place a vehicle. skipping.");
+        }
     };
     VehicleFactory.prototype.createVehicle = function (x, y, h) {
         var rnd = Math.floor(Math.random() * 3);
@@ -607,7 +826,7 @@ var VehicleFactory = (function (_super) {
                 speed = 50;
                 break;
         }
-        return new Vehicle(28, 12, type, h, speed, x, y, this.mapData);
+        return new Vehicle(this.lastVehicleCreationId++, 28, 12, type, h, speed, x, y, this.mapData, this);
     };
     return VehicleFactory;
 })(GameObjectContainer);
@@ -636,7 +855,7 @@ var World = (function (_super) {
     };
     World.prototype.init = function () {
         console.log('world:init enter');
-        createjs.Ticker.setFPS(60);
+        createjs.Ticker.setFPS(30);
         this.map = new BgMap(false);
         this.scoreboard = new ScoreBoard();
         this.factory = new VehicleFactory(this.map, 500);

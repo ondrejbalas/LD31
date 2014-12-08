@@ -1,6 +1,7 @@
 interface ISquare {
     x:number;
     y:number;
+    t:number;
 }
 
 class BgMap implements IGameObject {
