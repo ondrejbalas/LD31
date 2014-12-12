@@ -1,16 +1,37 @@
-interface ISquare {
-    x:number;
-    y:number;
-    t:number;
-}
+class Map1 implements IMapData {
+    validSquares:ISquare[];
+    squares:number[][];
 
-class BgMap implements IGameObject {
-    bg:createjs.Bitmap;
-    squares:number[][] = [[]];
-    private validSquares:ISquare[];
+    constructor() {
+        this.validSquares = this.getValidSquares();
+        this.squares = [[]];
 
-    constructor(public drawValidSquares:boolean) {
-        this.validSquares = [
+        for (var x = 0; x < 32; x++) {
+            this.squares[x] = [];
+            for (var y = 0; y < 24; y++) {
+                this.squares[x][y] = 0;
+            }
+        }
+
+        _.each(this.validSquares, (sq) => {
+            this.squares[sq.x][sq.y] = sq.t;
+        });
+    }
+
+    preload():IAssetPath[] {
+        return [{id: 'mapbg', src: 'map-bg.png'}];
+    }
+
+    bgImageName():string {
+        return 'mapbg';
+    }
+
+    squareSize():number {
+        return 32;
+    }
+
+    private getValidSquares():ISquare[] {
+        return [
             { x: 2, y: 5, t: 1},
             { x: 3, y: 5, t: 1},
             { x: 4, y: 5, t: 1},
@@ -141,50 +162,5 @@ class BgMap implements IGameObject {
             { x: 10, y: 18, t: 2},
             { x: 10, y: 19, t: 2},
         ];
-
-        for (var x = 0; x < 32; x++) {
-            this.squares[x] = [];
-            for (var y = 0; y < 24; y++) {
-                this.squares[x][y] = 0;
-            }
-        }
-
-        _.each(this.validSquares, (sq) => {
-            this.squares[sq.x][sq.y] = sq.t;
-        });
     }
-
-    init():void {
-
-    }
-
-    preload():IAssetPath[] {
-        return [{id: 'mapbg', src: 'map-bg.png'}];
-    }
-
-    loadContent(stage:createjs.Stage, lib:AssetLibrary):void {
-        this.bg = new createjs.Bitmap(lib.getImage('mapbg'));
-        this.bg.x = 120;
-
-        stage.addChild(this.bg);
-
-        if(this.drawValidSquares) {
-            var shape = new createjs.Shape();
-            shape.x = 120;
-            _.each(this.validSquares, (sq) => {
-                if(sq.t === 1) shape.graphics.beginFill('#FF0000');
-                if(sq.t === 2) shape.graphics.beginFill('#FFFF00');
-                shape.graphics.drawRect(4 + sq.x * 32, 4 + sq.y * 32, 24, 24);
-                console.log('drawing rect at [' + sq.x + ',' + sq.y + '] with dimensions 24x24');
-            });
-            stage.addChild(shape);
-        }
-    }
-
-    update(event:createjs.TickerEvent):void {
-    }
-
-    unloadContent(stage:createjs.Stage):void {
-    }
-
 }

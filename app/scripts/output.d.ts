@@ -12,22 +12,12 @@ declare class AssetLibrary {
     addAll(assets: IAssetPath[]): void;
     preload(callback: () => void): void;
 }
-interface ISquare {
+declare class Pos {
     x: number;
     y: number;
-    t: number;
-}
-declare class BgMap implements IGameObject {
-    drawValidSquares: boolean;
-    bg: createjs.Bitmap;
-    squares: number[][];
-    private validSquares;
-    constructor(drawValidSquares: boolean);
-    init(): void;
-    preload(): IAssetPath[];
-    loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
-    update(event: createjs.TickerEvent): void;
-    unloadContent(stage: createjs.Stage): void;
+    sqX: number;
+    sqY: number;
+    static fromPixels(x: number, y: number): Pos;
 }
 declare class GameObjectContainer implements IGameObject {
     gameObjects: IGameObject[];
@@ -69,6 +59,39 @@ interface IGameObject {
     update(event: createjs.TickerEvent): void;
     unloadContent(stage: createjs.Stage): void;
 }
+declare class BgMap implements IGameObject {
+    private drawValidSquares;
+    mapData: IMapData;
+    bg: createjs.Bitmap;
+    constructor(drawValidSquares: boolean, mapData: IMapData);
+    init(): void;
+    preload(): IAssetPath[];
+    loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
+    update(event: createjs.TickerEvent): void;
+    unloadContent(stage: createjs.Stage): void;
+    currentSquareSize(): number;
+}
+declare class Map1 implements IMapData {
+    validSquares: ISquare[];
+    squares: number[][];
+    constructor();
+    preload(): IAssetPath[];
+    bgImageName(): string;
+    squareSize(): number;
+    private getValidSquares();
+}
+interface IMapData {
+    preload(): IAssetPath[];
+    bgImageName(): string;
+    squareSize(): number;
+    validSquares: ISquare[];
+    squares: number[][];
+}
+interface ISquare {
+    x: number;
+    y: number;
+    t: number;
+}
 declare class ScoreBoard implements IGameObject {
     bg: createjs.Bitmap;
     init(): void;
@@ -92,7 +115,7 @@ declare class Vehicle implements IGameObject {
     desiredSpeed: number;
     sqX: number;
     sqY: number;
-    mapData: BgMap;
+    mapData: IMapData;
     private factory;
     showHighlight: boolean;
     x: number;
@@ -108,7 +131,7 @@ declare class Vehicle implements IGameObject {
     allowLeftTurn: (x: number, y: number) => boolean;
     leftTurnInProgress: boolean;
     justCreated: boolean;
-    constructor(id: number, length: number, width: number, imgid: string, heading: number, desiredSpeed: number, sqX: number, sqY: number, mapData: BgMap, factory: VehicleFactory);
+    constructor(id: number, length: number, width: number, imgid: string, heading: number, desiredSpeed: number, sqX: number, sqY: number, mapData: IMapData, factory: VehicleFactory);
     init(): void;
     preload(): IAssetPath[];
     loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
@@ -134,7 +157,7 @@ declare class Vehicle implements IGameObject {
     unloadContent(stage: createjs.Stage): void;
 }
 declare class VehicleFactory extends GameObjectContainer {
-    mapData: BgMap;
+    mapData: IMapData;
     timeBetweenSpawnsMs: number;
     lastCreation: number;
     lastVehicleCreationId: number;
@@ -142,7 +165,7 @@ declare class VehicleFactory extends GameObjectContainer {
     private lib;
     spawnedVehicles: Vehicle[];
     squares: number[][][];
-    constructor(mapData: BgMap, timeBetweenSpawnsMs: number);
+    constructor(mapData: IMapData, timeBetweenSpawnsMs: number);
     init(): void;
     preload(): IAssetPath[];
     loadContent(stage: createjs.Stage, lib: AssetLibrary): void;
@@ -159,6 +182,10 @@ declare class VehicleFactory extends GameObjectContainer {
     getVehicleById(id: number): Vehicle;
     addVehicle(): void;
     createVehicle(x: number, y: number, h: number): Vehicle;
+}
+declare class VehicleMover {
+}
+declare class VehicleTurner {
 }
 declare class World extends GameObjectContainer {
     stage: createjs.Stage;

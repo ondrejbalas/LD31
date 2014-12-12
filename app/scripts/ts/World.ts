@@ -31,12 +31,16 @@ class World extends GameObjectContainer {
 
     init():void {
         console.log('world:init enter');
-        createjs.Ticker.setFPS(30);
+        createjs.Ticker.setFPS(60);
 
-        this.map = new BgMap(false);
+        this.map = new BgMap(false, new Map1());
+        window.squareSize = () => {
+            return this.map.currentSquareSize();
+        }
+
         this.scoreboard = new ScoreBoard();
-        this.factory = new VehicleFactory(this.map, 500);
-        this.grid = new GridOverlay('#999', 32, 1024, 640, 120, 0);
+        this.factory = new VehicleFactory(this.map.mapData, 500);
+        this.grid = new GridOverlay('#999', this.map.currentSquareSize(), 1024, 640, 120, 0);
 
         this.pushObject(this.map);
         this.pushObject(this.factory);

@@ -66,6 +66,8 @@ module.exports = function (grunt) {
                 files: ['<%= yeoman.app %>/scripts/{,*/}*.js'],
                 tasks: [],
                 options: {
+                    interrupt:true,
+                    livereloadOnError: false,
                     livereload: true
                 }
             },

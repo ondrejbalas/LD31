@@ -6,7 +6,7 @@ class VehicleFactory extends GameObjectContainer {
     spawnedVehicles:Vehicle[] = [];
     squares:number[][][] = [[[]]];
 
-    constructor(public mapData:BgMap,public timeBetweenSpawnsMs:number) {
+    constructor(public mapData:IMapData,public timeBetweenSpawnsMs:number) {
         super();
     }
 

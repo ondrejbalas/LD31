@@ -28,12 +28,183 @@ var AssetLibrary = (function () {
     };
     return AssetLibrary;
 })();
+var Pos = (function () {
+    function Pos() {
+    }
+    Pos.fromPixels = function (x, y) {
+        var sqSize = window.squareSize();
+        var pos = new Pos();
+        pos.x = x;
+        pos.y = y;
+        pos.sqX = Math.floor(x / sqSize);
+        pos.sqY = Math.floor(y / sqSize);
+        return pos;
+    };
+    return Pos;
+})();
+///<reference path="../../../typings/easeljs/easeljs.d.ts" />
+var GameObjectContainer = (function () {
+    function GameObjectContainer() {
+        this.gameObjects = [];
+    }
+    GameObjectContainer.prototype.pushObject = function (obj) {
+        this.gameObjects.push(obj);
+    };
+    GameObjectContainer.prototype.init = function () {
+        for (var i = 0; i < this.gameObjects.length; i++) {
+            var obj = this.gameObjects[i];
+            obj.init();
+        }
+    };
+    GameObjectContainer.prototype.preload = function () {
+        var ret = [];
+        for (var i = 0; i < this.gameObjects.length; i++) {
+            var obj = this.gameObjects[i];
+            var arr = obj.preload();
+            for (var j = 0; j < arr.length; j++) {
+                ret.push(arr[j]);
+            }
+        }
+        return ret;
+    };
+    GameObjectContainer.prototype.loadContent = function (stage, lib) {
+        for (var i = 0; i < this.gameObjects.length; i++) {
+            var obj = this.gameObjects[i];
+            obj.loadContent(stage, lib);
+        }
+    };
+    GameObjectContainer.prototype.update = function (event) {
+        for (var i = 0; i < this.gameObjects.length; i++) {
+            var obj = this.gameObjects[i];
+            obj.update(event);
+        }
+    };
+    GameObjectContainer.prototype.unloadContent = function (stage) {
+        for (var i = 0; i < this.gameObjects.length; i++) {
+            var obj = this.gameObjects[i];
+            obj.unloadContent(stage);
+        }
+    };
+    return GameObjectContainer;
+})();
+var GridOverlay = (function () {
+    function GridOverlay(color, squareSize, width, height, offsetX, offsetY) {
+        this.color = color;
+        this.squareSize = squareSize;
+        this.width = width;
+        this.height = height;
+        this.offsetX = offsetX;
+        this.offsetY = offsetY;
+    }
+    GridOverlay.prototype.init = function () {
+    };
+    GridOverlay.prototype.preload = function () {
+        return [];
+    };
+    GridOverlay.prototype.loadContent = function (stage, lib) {
+        this.grid = new createjs.Shape();
+        this.grid.x = this.offsetX;
+        this.grid.y = this.offsetY;
+        var g = this.grid.graphics;
+        g.setStrokeStyle(1).beginStroke(this.color);
+        for (var x = this.squareSize; x < this.width; x += this.squareSize) {
+            g.mt(x, 0);
+            g.lt(x, this.height);
+        }
+        for (var y = this.squareSize; y < this.height; y += this.squareSize) {
+            g.mt(0, y);
+            g.lt(this.width, y);
+        }
+        this.grid.graphics.endStroke();
+        stage.addChild(this.grid);
+    };
+    GridOverlay.prototype.update = function (event) {
+    };
+    GridOverlay.prototype.unloadContent = function (stage) {
+    };
+    return GridOverlay;
+})();
+var Helpers = (function () {
+    function Helpers() {
+    }
+    Helpers.prototype.boundsCheck = function (check, min, max) {
+        return check >= min && check <= max;
+    };
+    Helpers.prototype.distance = function (x1, y1, x2, y2) {
+        //return Math.sqrt( (x2-=x1)*x2 + (y2-=y1)*y2 );
+        return Math.abs(x2 - x1) + Math.abs(y2 - y1);
+    };
+    return Helpers;
+})();
+var IAssetPath = (function () {
+    function IAssetPath() {
+    }
+    return IAssetPath;
+})();
+///<reference path="../../../typings/easeljs/easeljs.d.ts" />
 var BgMap = (function () {
-    function BgMap(drawValidSquares) {
-        var _this = this;
+    function BgMap(drawValidSquares, mapData) {
         this.drawValidSquares = drawValidSquares;
+        this.mapData = mapData;
+    }
+    BgMap.prototype.init = function () {
+    };
+    BgMap.prototype.preload = function () {
+        return this.mapData.preload();
+    };
+    BgMap.prototype.loadContent = function (stage, lib) {
+        this.bg = new createjs.Bitmap(lib.getImage(this.mapData.bgImageName()));
+        this.bg.x = 120;
+        stage.addChild(this.bg);
+        if (this.drawValidSquares) {
+            var shape = new createjs.Shape();
+            shape.x = 120;
+            _.each(this.mapData.validSquares, function (sq) {
+                if (sq.t === 1)
+                    shape.graphics.beginFill('#FF0000');
+                if (sq.t === 2)
+                    shape.graphics.beginFill('#FFFF00');
+                shape.graphics.drawRect(4 + sq.x * 32, 4 + sq.y * 32, 24, 24);
+                console.log('drawing rect at [' + sq.x + ',' + sq.y + '] with dimensions 24x24');
+            });
+            stage.addChild(shape);
+        }
+    };
+    BgMap.prototype.update = function (event) {
+    };
+    BgMap.prototype.unloadContent = function (stage) {
+    };
+    BgMap.prototype.currentSquareSize = function () {
+        return this.mapData.squareSize();
+    };
+    return BgMap;
+})();
+var Map1 = (function () {
+    function Map1() {
+        var _this = this;
+        this.validSquares = this.getValidSquares();
         this.squares = [[]];
-        this.validSquares = [
+        for (var x = 0; x < 32; x++) {
+            this.squares[x] = [];
+            for (var y = 0; y < 24; y++) {
+                this.squares[x][y] = 0;
+            }
+        }
+        _.each(this.validSquares, function (sq) {
+            _this.squares[sq.x][sq.y] = sq.t;
+        });
+    }
+    Map1.prototype.preload = function () {
+        return [{ id: 'mapbg', src: 'map-bg.png' }];
+    };
+    Map1.prototype.bgImageName = function () {
+        return 'mapbg';
+    };
+    Map1.prototype.squareSize = function () {
+        return 32;
+    };
+    Map1.prototype.getValidSquares = function () {
+        return [
             { x: 2, y: 5, t: 1 },
             { x: 3, y: 5, t: 1 },
             { x: 4, y: 5, t: 1 },
@@ -164,145 +335,9 @@ var BgMap = (function () {
             { x: 10, y: 18, t: 2 },
             { x: 10, y: 19, t: 2 },
         ];
-        for (var x = 0; x < 32; x++) {
-            this.squares[x] = [];
-            for (var y = 0; y < 24; y++) {
-                this.squares[x][y] = 0;
-            }
-        }
-        _.each(this.validSquares, function (sq) {
-            _this.squares[sq.x][sq.y] = sq.t;
-        });
-    }
-    BgMap.prototype.init = function () {
     };
-    BgMap.prototype.preload = function () {
-        return [{ id: 'mapbg', src: 'map-bg.png' }];
-    };
-    BgMap.prototype.loadContent = function (stage, lib) {
-        this.bg = new createjs.Bitmap(lib.getImage('mapbg'));
-        this.bg.x = 120;
-        stage.addChild(this.bg);
-        if (this.drawValidSquares) {
-            var shape = new createjs.Shape();
-            shape.x = 120;
-            _.each(this.validSquares, function (sq) {
-                if (sq.t === 1)
-                    shape.graphics.beginFill('#FF0000');
-                if (sq.t === 2)
-                    shape.graphics.beginFill('#FFFF00');
-                shape.graphics.drawRect(4 + sq.x * 32, 4 + sq.y * 32, 24, 24);
-                console.log('drawing rect at [' + sq.x + ',' + sq.y + '] with dimensions 24x24');
-            });
-            stage.addChild(shape);
-        }
-    };
-    BgMap.prototype.update = function (event) {
-    };
-    BgMap.prototype.unloadContent = function (stage) {
-    };
-    return BgMap;
+    return Map1;
 })();
-///<reference path="../../../typings/easeljs/easeljs.d.ts" />
-var GameObjectContainer = (function () {
-    function GameObjectContainer() {
-        this.gameObjects = [];
-    }
-    GameObjectContainer.prototype.pushObject = function (obj) {
-        this.gameObjects.push(obj);
-    };
-    GameObjectContainer.prototype.init = function () {
-        for (var i = 0; i < this.gameObjects.length; i++) {
-            var obj = this.gameObjects[i];
-            obj.init();
-        }
-    };
-    GameObjectContainer.prototype.preload = function () {
-        var ret = [];
-        for (var i = 0; i < this.gameObjects.length; i++) {
-            var obj = this.gameObjects[i];
-            var arr = obj.preload();
-            for (var j = 0; j < arr.length; j++) {
-                ret.push(arr[j]);
-            }
-        }
-        return ret;
-    };
-    GameObjectContainer.prototype.loadContent = function (stage, lib) {
-        for (var i = 0; i < this.gameObjects.length; i++) {
-            var obj = this.gameObjects[i];
-            obj.loadContent(stage, lib);
-        }
-    };
-    GameObjectContainer.prototype.update = function (event) {
-        for (var i = 0; i < this.gameObjects.length; i++) {
-            var obj = this.gameObjects[i];
-            obj.update(event);
-        }
-    };
-    GameObjectContainer.prototype.unloadContent = function (stage) {
-        for (var i = 0; i < this.gameObjects.length; i++) {
-            var obj = this.gameObjects[i];
-            obj.unloadContent(stage);
-        }
-    };
-    return GameObjectContainer;
-})();
-var GridOverlay = (function () {
-    function GridOverlay(color, squareSize, width, height, offsetX, offsetY) {
-        this.color = color;
-        this.squareSize = squareSize;
-        this.width = width;
-        this.height = height;
-        this.offsetX = offsetX;
-        this.offsetY = offsetY;
-    }
-    GridOverlay.prototype.init = function () {
-    };
-    GridOverlay.prototype.preload = function () {
-        return [];
-    };
-    GridOverlay.prototype.loadContent = function (stage, lib) {
-        this.grid = new createjs.Shape();
-        this.grid.x = this.offsetX;
-        this.grid.y = this.offsetY;
-        var g = this.grid.graphics;
-        g.setStrokeStyle(1).beginStroke(this.color);
-        for (var x = this.squareSize; x < this.width; x += this.squareSize) {
-            g.mt(x, 0);
-            g.lt(x, this.height);
-        }
-        for (var y = this.squareSize; y < this.height; y += this.squareSize) {
-            g.mt(0, y);
-            g.lt(this.width, y);
-        }
-        this.grid.graphics.endStroke();
-        stage.addChild(this.grid);
-    };
-    GridOverlay.prototype.update = function (event) {
-    };
-    GridOverlay.prototype.unloadContent = function (stage) {
-    };
-    return GridOverlay;
-})();
-var Helpers = (function () {
-    function Helpers() {
-    }
-    Helpers.prototype.boundsCheck = function (check, min, max) {
-        return check >= min && check <= max;
-    };
-    Helpers.prototype.distance = function (x1, y1, x2, y2) {
-        //return Math.sqrt( (x2-=x1)*x2 + (y2-=y1)*y2 );
-        return Math.abs(x2 - x1) + Math.abs(y2 - y1);
-    };
-    return Helpers;
-})();
-var IAssetPath = (function () {
-    function IAssetPath() {
-    }
-    return IAssetPath;
-})();
-///<reference path="../../../typings/easeljs/easeljs.d.ts" />
 var ScoreBoard = (function () {
     function ScoreBoard() {
     }
@@ -830,6 +865,16 @@ var VehicleFactory = (function (_super) {
     };
     return VehicleFactory;
 })(GameObjectContainer);
+var VehicleMover = (function () {
+    function VehicleMover() {
+    }
+    return VehicleMover;
+})();
+var VehicleTurner = (function () {
+    function VehicleTurner() {
+    }
+    return VehicleTurner;
+})();
 ///<reference path="../../../typings/easeljs/easeljs.d.ts" />
 ///<reference path="../../../typings/preloadjs/preloadjs.d.ts" />
 ///<reference path="../app.d.ts" />
@@ -854,12 +899,16 @@ var World = (function (_super) {
         });
     };
     World.prototype.init = function () {
+        var _this = this;
         console.log('world:init enter');
-        createjs.Ticker.setFPS(30);
-        this.map = new BgMap(false);
+        createjs.Ticker.setFPS(60);
+        this.map = new BgMap(false, new Map1());
+        window.squareSize = function () {
+            return _this.map.currentSquareSize();
+        };
         this.scoreboard = new ScoreBoard();
-        this.factory = new VehicleFactory(this.map, 500);
-        this.grid = new GridOverlay('#999', 32, 1024, 640, 120, 0);
+        this.factory = new VehicleFactory(this.map.mapData, 500);
+        this.grid = new GridOverlay('#999', this.map.currentSquareSize(), 1024, 640, 120, 0);
         this.pushObject(this.map);
         this.pushObject(this.factory);
         //this.pushObject(new Vehicle(28, 12, 'blue', 0, 100, 10, 4, this.map))

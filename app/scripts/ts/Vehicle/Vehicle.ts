@@ -30,7 +30,7 @@ class Vehicle implements IGameObject {
                 public desiredSpeed:number,
                 public sqX:number,
                 public sqY:number,
-                public mapData:BgMap,
+                public mapData:IMapData,
                 private factory:VehicleFactory)
     {
         this.x = 16 + sqX * 32;
